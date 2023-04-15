@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class User {
     @TableId(value = "id", type = IdType.AUTO)
-    Integer id;
-    String username;
-    String password;
+    private Integer id;
+    private String username;
+    private String password;
+    private String avatar;
 }
