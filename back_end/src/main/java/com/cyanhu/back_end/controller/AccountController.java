@@ -1,6 +1,6 @@
-package com.cyanhu.back_end.controller.user;
+package com.cyanhu.back_end.controller;
 
-import com.cyanhu.back_end.service.user.AccountService;
+import com.cyanhu.back_end.service.iter.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +23,6 @@ public class AccountController {
     public Map<String, String> getToken(@RequestBody Map<String, String> map) {
         String username = map.get("username");
         String password = map.get("password");
-        System.out.println(username + " " + password);
         return accountService.getToken(username, password);
     }
 

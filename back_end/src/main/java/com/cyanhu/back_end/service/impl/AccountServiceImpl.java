@@ -1,9 +1,9 @@
-package com.cyanhu.back_end.service.impl.user;
+package com.cyanhu.back_end.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyanhu.back_end.mapper.UserMapper;
 import com.cyanhu.back_end.pojo.User;
-import com.cyanhu.back_end.service.user.AccountService;
+import com.cyanhu.back_end.service.iter.AccountService;
 import com.cyanhu.back_end.utils.JwtUtil;
 import com.cyanhu.back_end.utils.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,14 +44,20 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Map<String, String> getToken(String username, String password) {
+        Map<String, String> map = new HashMap<>();
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
-
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(authenticationToken);
+        } catch (Exception e) {
+            map.put("error_message", "用户名不存在或密码错误");
+            return map;
+        }
         UserDetailsImpl loginUser = (UserDetailsImpl) authentication.getPrincipal();
         User user = loginUser.getUser();
         String jwt = JwtUtil.createJWT(user.getId().toString());
 
-        Map<String, String> map = new HashMap<>();
+
         map.put("error_message", "success");
         map.put("token", jwt);
 
