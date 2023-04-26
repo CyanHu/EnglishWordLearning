@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:front_end_flutter/components/login_text_field.dart';
-
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:front_end_flutter/components/login_text_field.dart';
+import 'package:front_end_flutter/pages/root_page.dart';
+import 'package:front_end_flutter/services/account_service.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,20 +21,15 @@ class _LoginPageState extends State<LoginPage> {
   final _confirmedPasswordController = TextEditingController();
   bool _isRegisterPage = false;
 
-  final dio = Dio();
-
-  void request() async {
-    Response response;
-    // The below request is the same as above.
-    response = await dio.post('http://localhost:3000/user/account/token', data: {'username': "cc", 'password': 'pcc'});
-    print(response.data.toString());
-  }
-
-  void login() {
+  void login() async {
     var username = _usernameController.value.text;
     var password = _passwordController.value.text;
     print("$username, $password");
-    request();
+    Response response = await AccountService.getToken(username: username, password: password);
+    print(response);
+    Navigator.push(context,MaterialPageRoute(builder: (context) {
+      return RootPage();
+    }),);
   }
 
   void switchPage() {
