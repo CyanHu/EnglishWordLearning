@@ -83,6 +83,11 @@
 			<artifactId>fastjson2</artifactId>
 			<version>2.0.29</version>
 		</dependency>
+		<dependency>
+			<groupId>io.github.fanyong920</groupId>
+			<artifactId>jvppeteer</artifactId>
+			<version>1.1.5</version>
+		</dependency>
 
 
 	</dependencies>

@@ -35,7 +35,7 @@ public class AccountServiceImpl implements AccountService {
         User user = loginUser.getUser();
 
         Map<String, String> map = new HashMap<>();
-        map.put("error_message", "success");
+        map.put("error_message", "成功");
         map.put("id", user.getId().toString());
         map.put("username", user.getAvatar());
         return map;
@@ -58,7 +58,7 @@ public class AccountServiceImpl implements AccountService {
         String jwt = JwtUtil.createJWT(user.getId().toString());
 
 
-        map.put("error_message", "success");
+        map.put("error_message", "成功");
         map.put("token", jwt);
 
         return map;
@@ -111,7 +111,7 @@ public class AccountServiceImpl implements AccountService {
         User user = new User(null, username, encodedPassword, avatar);
         userMapper.insert(user);
 
-        map.put("error_message", "success");
+        map.put("error_message", "成功");
         return map;
     }
 }
