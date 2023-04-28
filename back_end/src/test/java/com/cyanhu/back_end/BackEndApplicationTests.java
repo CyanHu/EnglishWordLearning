@@ -1,6 +1,12 @@
 package com.cyanhu.back_end;
 
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.generator.FastAutoGenerator;
+import com.baomidou.mybatisplus.generator.config.OutputFile;
+import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
+import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
+import com.baomidou.mybatisplus.generator.fill.Column;
 import com.cyanhu.back_end.pojo.dto.AddedWordDataDTO;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
@@ -13,15 +19,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.sql.Types;
+import java.util.*;
 
 @SpringBootTest
 class BackEndApplicationTests {
 
 	@Test
-	void contextLoads() {
+	void crawlerTest() {
 		try {
 			String word = "phone";
 			//自动下载，第一次下载后不会再下载
@@ -83,6 +88,35 @@ class BackEndApplicationTests {
 		} catch (Exception e) {
 			System.out.println(e);
 		}
+	}
+
+	@Test
+	void mybatisPlusGeneratorTest() {
+		FastAutoGenerator.create("jdbc:mysql://81.68.190.197:3306/ewl_database?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8", "ewl_user", "Ccqpalzm001.")
+				.globalConfig(builder -> {
+					builder.author("cyanhu") // 设置作者
+//							.enableSwagger() // 开启 swagger 模式
+							.fileOverride() // 覆盖已生成文件
+							.outputDir("/tmp/mpg"); // 指定输出目录
+				})
+				.dataSourceConfig(builder -> builder.typeConvertHandler((globalConfig, typeRegistry, metaInfo) -> {
+					int typeCode = metaInfo.getJdbcType().TYPE_CODE;
+					if (typeCode == Types.SMALLINT) {
+						// 自定义类型转换
+						return DbColumnType.INTEGER;
+					}
+					return typeRegistry.getColumnType(metaInfo);
+
+				}))
+				.packageConfig(builder -> {
+					builder.parent("com.cyanhu.back_end") // 设置父包名
+							.pathInfo(Collections.singletonMap(OutputFile.xml, "/tmp/mpg/mapper")); // 设置mapperXml生成路径
+				})
+				.strategyConfig(builder -> {
+					builder.addInclude(Collections.emptyList());
+				})
+				.templateEngine(new FreemarkerTemplateEngine()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
+				.execute();
 	}
 
 	@Test
