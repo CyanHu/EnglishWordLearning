@@ -1,9 +1,16 @@
 package com.cyanhu.back_end.mapper;
 
+import com.cyanhu.back_end.entity.Notice;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.cyanhu.back_end.pojo.Notice;
-import org.apache.ibatis.annotations.Mapper;
 
-@Mapper
+/**
+ * <p>
+ *  Mapper 接口
+ * </p>
+ *
+ * @author cyanhu
+ * @since 2023-04-28
+ */
 public interface NoticeMapper extends BaseMapper<Notice> {
+
 }

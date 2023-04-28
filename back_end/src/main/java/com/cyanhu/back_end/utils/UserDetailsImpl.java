@@ -1,6 +1,7 @@
 package com.cyanhu.back_end.utils;
 
-import com.cyanhu.back_end.pojo.User;
+
+import com.cyanhu.back_end.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

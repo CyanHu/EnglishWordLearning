@@ -2,8 +2,9 @@ package com.cyanhu.back_end.filter;
 
 
 
+import com.cyanhu.back_end.entity.User;
 import com.cyanhu.back_end.mapper.UserMapper;
-import com.cyanhu.back_end.pojo.User;
+import com.cyanhu.back_end.service.IUserService;
 import com.cyanhu.back_end.utils.JwtUtil;
 import com.cyanhu.back_end.utils.UserDetailsImpl;
 import io.jsonwebtoken.Claims;

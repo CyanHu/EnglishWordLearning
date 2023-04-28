@@ -1,0 +1,20 @@
+package com.cyanhu.back_end.service.impl;
+
+import com.cyanhu.back_end.entity.LearningWordRecord;
+import com.cyanhu.back_end.mapper.LearningWordRecordMapper;
+import com.cyanhu.back_end.service.ILearningWordRecordService;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.stereotype.Service;
+
+/**
+ * <p>
+ *  服务实现类
+ * </p>
+ *
+ * @author cyanhu
+ * @since 2023-04-28
+ */
+@Service
+public class LearningWordRecordServiceImpl extends ServiceImpl<LearningWordRecordMapper, LearningWordRecord> implements ILearningWordRecordService {
+
+}
