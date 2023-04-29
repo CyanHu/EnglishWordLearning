@@ -119,7 +119,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         String encodedPassword = passwordEncoder.encode(password);
         String avatar = "https://cc-pic-1306321037.cos.ap-shanghai.myqcloud.com/avatar/202304161828131.png";
-        User user = new User(null, username, encodedPassword, avatar);
+        User user = new User().setUsername(username).setPassword(encodedPassword).setAvatar(avatar);
         userMapper.insert(user);
 
         map.put("error_message", "成功");

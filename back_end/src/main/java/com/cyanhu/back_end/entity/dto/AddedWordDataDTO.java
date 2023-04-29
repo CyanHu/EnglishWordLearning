@@ -2,15 +2,14 @@ package com.cyanhu.back_end.entity.dto;
 
 import com.cyanhu.back_end.entity.WordExampleSentence;
 import com.cyanhu.back_end.entity.WordMeaning;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@Accessors(chain = true)
 public class AddedWordDataDTO {
     String word;
     String enPhoneticSymbol;

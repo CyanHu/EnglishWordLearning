@@ -12,5 +12,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @since 2023-04-28
  */
 public interface LearningTimeRecordMapper extends BaseMapper<LearningTimeRecord> {
-
+    Long getTodayTimeByUserId(Integer userId);
+    Long getTotalTimeByUserId(Integer userId);
 }

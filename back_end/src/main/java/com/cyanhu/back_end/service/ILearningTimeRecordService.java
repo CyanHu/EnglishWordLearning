@@ -12,5 +12,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2023-04-28
  */
 public interface ILearningTimeRecordService extends IService<LearningTimeRecord> {
-
+    long getTodayTimeByUserId(Integer userId);
+    long getTotalTimeByUserId(Integer userId);
 }

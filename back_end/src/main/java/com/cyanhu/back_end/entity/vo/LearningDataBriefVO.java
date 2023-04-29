@@ -1,12 +1,11 @@
 package com.cyanhu.back_end.entity.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.Accessors;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@Accessors(chain = true)
 public class LearningDataBriefVO {
     private LearningDataVO todayLearningData;
     private LearningDataVO totalLearningData;

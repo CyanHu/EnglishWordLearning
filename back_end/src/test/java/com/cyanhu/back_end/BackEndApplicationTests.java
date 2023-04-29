@@ -2,12 +2,21 @@ package com.cyanhu.back_end;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
+import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.OutputFile;
 import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import com.baomidou.mybatisplus.generator.fill.Column;
+import com.cyanhu.back_end.entity.LearningTimeRecord;
+import com.cyanhu.back_end.entity.LearningWord;
+import com.cyanhu.back_end.entity.WordBook;
 import com.cyanhu.back_end.entity.dto.AddedWordDataDTO;
+import com.cyanhu.back_end.service.*;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
@@ -15,6 +24,7 @@ import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.options.PDFOptions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -113,10 +123,70 @@ class BackEndApplicationTests {
 							.pathInfo(Collections.singletonMap(OutputFile.xml, "/tmp/mpg/mapper")); // 设置mapperXml生成路径
 				})
 				.strategyConfig(builder -> {
-					builder.addInclude(Collections.emptyList());
+					builder.addInclude(Collections.emptyList())
+							.entityBuilder()
+							.enableFileOverride()
+							.enableLombok()
+							.disableSerialVersionUID()
+							.enableChainModel();
+
 				})
 				.templateEngine(new FreemarkerTemplateEngine()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
 				.execute();
+	}
+
+
+	@Autowired
+	ILearningWordService learningWordService;
+
+	@Test
+	void MPlogTest() {
+		String level = "easy";
+		UpdateWrapper<LearningWord> wrapper = new UpdateWrapper<>();
+		wrapper.eq("id", "1");
+		if ("easy".equals(level)) {
+			wrapper.setSql("`learning_count` = `learning_count` + 1");
+		} else if ("medium".equals(level)) {
+			wrapper.setSql("SET learning_count = (\n" +
+					"\tCASE\n" +
+					"\tWHEN learning_count < 2 THEN 0\n" +
+					"\tELSE learning_count - 2\n" +
+					"\tEND\n" +
+					")");
+		} else {
+			wrapper.set("learning_count", 0);
+		}
+		learningWordService.update(wrapper);
+
+	}
+
+	@Autowired
+	ILearningTimeRecordService learningTimeRecordService;
+	@Autowired
+	ILearningWordRecordService learningWordRecordService;
+
+	@Test
+	void getLearningBriefTest() {
+		Long todayTime = learningTimeRecordService.getTodayTimeByUserId(1);
+		Long totalTime = learningTimeRecordService.getTotalTimeByUserId(1);
+		int todayMinutes = (int) (todayTime / 60);
+		int totalMinutes = (int) (totalTime / 60);
+		int todayWordCounts = learningWordRecordService.getTodayWordCountsByUserId(1);
+		int totalWordCounts = learningWordRecordService.getTotalWordCountsByUserId(1);
+
+		System.out.println(todayMinutes);
+		System.out.println(todayWordCounts);
+		System.out.println(totalMinutes);
+		System.out.println(totalWordCounts);
+	}
+
+	@Autowired
+	ISignInRecordService signInRecordService;
+
+	@Test
+	void isSignInTest() {
+		System.out.println(signInRecordService.isSingInByUserId(1));
+		System.out.println(signInRecordService.isSingInByUserId(2));
 	}
 
 	@Test

@@ -12,5 +12,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2023-04-28
  */
 public interface ILearningWordRecordService extends IService<LearningWordRecord> {
-
+    int getTodayWordCountsByUserId(Integer userId);
+    int getTotalWordCountsByUserId(Integer userId);
 }

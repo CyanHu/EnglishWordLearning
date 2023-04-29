@@ -64,7 +64,7 @@ public class WordBookController {
                  Map<String, Object> map1 = addWordData(addedWordDataDTO);
                  if (map1.get("error_message") == "单词已存在") existWordList.add(word);
                  Integer wordId = (Integer) ((Map)map1.get("data")).get("wordId");
-                 bookWordService.save(new BookWord(null, bookId, wordId));
+                 bookWordService.save(new BookWord().setBookId(bookId).setWordId(wordId));
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -88,7 +88,7 @@ public class WordBookController {
 
         Map<String, Object> map = new HashMap<>();
 
-        WordData wordData = new WordData(null, dataDTO.getWord());
+        WordData wordData = new WordData().setWord(dataDTO.getWord());
         QueryWrapper<WordData> wrapper = new QueryWrapper<>();
         wrapper.eq("word", wordData.getWord());
         wordData = wordDataService.getOne(wrapper);
@@ -100,10 +100,10 @@ public class WordBookController {
         wordDataService.save(wordData);
         Integer wordId = wordData.getId();
 
-        WordPronunciation wordPronunciationEn = new WordPronunciation(null, wordId, "英", dataDTO.getEnPhoneticSymbol());
-        WordPronunciation wordPronunciationAM = new WordPronunciation(null, wordId, "美", dataDTO.getAmPhoneticSymbol());
+        WordPronunciation wordPronunciationEn = new WordPronunciation().setWordId(wordId).setType("英").setPhoneticSymbol(dataDTO.getEnPhoneticSymbol());
+        WordPronunciation wordPronunciationAm = new WordPronunciation().setWordId(wordId).setType("美").setPhoneticSymbol(dataDTO.getEnPhoneticSymbol());
 
-        wordPronunciationService.save(wordPronunciationAM);
+        wordPronunciationService.save(wordPronunciationAm);
         wordPronunciationService.save(wordPronunciationEn);
 
         for (WordExampleSentence wordExampleSentence : dataDTO.getExampleSentences()) {

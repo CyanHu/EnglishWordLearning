@@ -12,5 +12,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @since 2023-04-28
  */
 public interface LearningWordRecordMapper extends BaseMapper<LearningWordRecord> {
-
+    Integer getTodayWordCountsByUserId(Integer userId);
+    Integer getTotalWordCountsByUserId(Integer userId);
 }

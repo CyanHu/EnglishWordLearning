@@ -1,5 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cyanhu.back_end.mapper.LearningTimeRecordMapper">
+    <select id="getTodayTimeByUserId" parameterType="java.lang.Integer"  resultType="java.lang.Long">
+        select sum(timestampdiff(SECOND, start_time, end_time)) as sum  from learning_time_record
+        where  user_id = #{userId} AND TO_DAYS(end_time) = TO_DAYS(NOW())
+    </select>
+    <select id="getTotalTimeByUserId" parameterType="java.lang.Integer"  resultType="java.lang.Long">
+        select sum(timestampdiff(SECOND, start_time, end_time)) as sum  from learning_time_record
+        where  user_id = #{userId}
+    </select>
+    <select id="getRecentWeekTimeByUserId" parameterType="java.lang.Integer"  resultType="java.lang.Integer">
+        SELECT timestampdiff(DAY, end_time, CURRENT_TIME) `interval`, timestampdiff(SECOND, start_time , end_time) sum
+        FROM learning_time_record
+        where DATE_SUB(CURDATE(), INTERVAL 6 DAY) &lt;= date(end_time)
+        AND user_id = #{userId}
+        ORDER BY `INTERVAL`
+    </select>
+    <select id="getRecentYearTimeByUserId" parameterType="java.lang.Integer"  resultType="java.lang.Long">
+        SELECT
+            `interval`,
+            sum(timestampdiff(SECOND, start_time, end_time)) sum
+        FROM
+            (
+            SELECT
+            timestampdiff(MONTH, end_time, CURRENT_TIME) `interval`,
+            start_time,
+            end_time
+            FROM
+            learning_time_record
+            WHERE
+            end_time &gt; DATE_SUB(CURDATE(), INTERVAL 1 YEAR) and user_id = #{userId}
+            )a
+        GROUP BY `interval`
+        ORDER BY `interval`
+    </select>
 
 </mapper>
