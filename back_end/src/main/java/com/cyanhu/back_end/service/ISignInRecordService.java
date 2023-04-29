@@ -12,5 +12,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2023-04-28
  */
 public interface ISignInRecordService extends IService<SignInRecord> {
-
+    Boolean isSingInByUserId(Integer userId);
 }

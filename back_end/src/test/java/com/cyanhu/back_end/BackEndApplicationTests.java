@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import com.baomidou.mybatisplus.generator.fill.Column;
 import com.cyanhu.back_end.entity.LearningTimeRecord;
 import com.cyanhu.back_end.entity.LearningWord;
+import com.cyanhu.back_end.entity.SignInRecord;
 import com.cyanhu.back_end.entity.WordBook;
 import com.cyanhu.back_end.entity.dto.AddedWordDataDTO;
 import com.cyanhu.back_end.service.*;
@@ -187,6 +188,9 @@ class BackEndApplicationTests {
 	void isSignInTest() {
 		System.out.println(signInRecordService.isSingInByUserId(1));
 		System.out.println(signInRecordService.isSingInByUserId(2));
+		System.out.println(signInRecordService.count(new QueryWrapper<SignInRecord>().eq("user_id", 1)));
+		System.out.println(signInRecordService.count(new QueryWrapper<SignInRecord>().eq("user_id", 2)));
+
 	}
 
 	@Test

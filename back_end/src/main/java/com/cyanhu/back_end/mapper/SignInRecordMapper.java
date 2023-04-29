@@ -12,5 +12,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @since 2023-04-28
  */
 public interface SignInRecordMapper extends BaseMapper<SignInRecord> {
+    Boolean isSingInByUserId(Integer userId);
 
 }
