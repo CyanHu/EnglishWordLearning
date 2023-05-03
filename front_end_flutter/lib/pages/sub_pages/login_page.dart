@@ -1,9 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:front_end_flutter/common/http/ewl.dart';
 import 'package:front_end_flutter/components/login_text_field.dart';
+import 'package:front_end_flutter/models/index.dart';
 import 'package:front_end_flutter/pages/root_page.dart';
 import 'package:front_end_flutter/services/account_service.dart';
+import 'package:provider/provider.dart';
+
+import '../../states/userModel.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -21,15 +26,27 @@ class _LoginPageState extends State<LoginPage> {
   final _confirmedPasswordController = TextEditingController();
   bool _isRegisterPage = false;
 
+
   void login() async {
     var username = _usernameController.value.text;
     var password = _passwordController.value.text;
-    print("$username, $password");
-    Response response = await AccountService.getToken(username: username, password: password);
-    print(response);
-    Navigator.push(context,MaterialPageRoute(builder: (context) {
-      return RootPage();
-    }),);
+    User? user;
+    EasyLoading.show(status: "登录中...");
+    try {
+      user = await EWL().login(username, password);
+      // 因为登录页返回后，首页会build，所以我们传入false，这样更新user后便不触发更新。
+      Provider.of<UserModel>(context, listen: false).user = user;
+    } on DioError catch(e) {
+      //登录失败则提示
+      if (e.response?.statusCode == 401) {
+        EasyLoading.showError("用户名或密码错误");
+      } else {
+        EasyLoading.showError(e.toString());
+      }
+    } finally {
+      // 隐藏loading框
+      EasyLoading.dismiss();
+    }
   }
 
   void switchPage() {

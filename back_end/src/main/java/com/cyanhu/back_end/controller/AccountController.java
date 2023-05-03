@@ -15,19 +15,20 @@ public class AccountController {
     IUserService userService;
 
     @GetMapping("/user/account/info")
-    public Map<String, String> getInfo() {
+    public Map<String, Object> getInfo() {
         return userService.getInfo();
     }
 
     @PostMapping("/user/account/token")
-    public Map<String, String> getToken(@RequestBody Map<String, String> map) {
+    public Map<String, Object> getToken(@RequestBody Map<String, String> map) {
+        System.out.println(map);
         String username = map.get("username");
         String password = map.get("password");
         return userService.getToken(username, password);
     }
 
     @PostMapping("/user/account/register")
-    public Map<String, String> register(@RequestBody Map<String, String> map) {
+    public Map<String, Object> register(@RequestBody Map<String, String> map) {
         String username = map.get("username");
         String password = map.get("password");
         return userService.register(username, password);

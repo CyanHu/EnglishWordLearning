@@ -11,6 +11,7 @@ import com.cyanhu.back_end.entity.dto.UpdatedLearningWordDTO;
 import com.cyanhu.back_end.service.ILearningTimeRecordService;
 import com.cyanhu.back_end.service.ILearningWordRecordService;
 import com.cyanhu.back_end.service.ILearningWordService;
+import com.cyanhu.back_end.service.IWordDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,4 +78,7 @@ public class LearningController {
         }
         return Map.of("error_message", "成功");
     }
+
+
+
 }

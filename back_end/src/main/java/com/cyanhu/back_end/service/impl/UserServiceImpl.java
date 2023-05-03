@@ -3,6 +3,7 @@ package com.cyanhu.back_end.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import com.cyanhu.back_end.entity.User;
+import com.cyanhu.back_end.entity.vo.UserVO;
 import com.cyanhu.back_end.mapper.UserMapper;
 import com.cyanhu.back_end.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -34,18 +35,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired(required = false)
+    @Autowired
     private UserMapper userMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Override
-    public Map<String, String> getInfo() {
+    public Map<String, Object> getInfo() {
         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl loginUser = (UserDetailsImpl) token.getPrincipal();
         User user = loginUser.getUser();
 
-        Map<String, String> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         map.put("error_message", "成功");
         map.put("id", user.getId().toString());
         map.put("username", user.getAvatar());
@@ -54,8 +55,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public Map<String, String> getToken(String username, String password) {
-        Map<String, String> map = new HashMap<>();
+    public Map<String, Object> getToken(String username, String password) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
         Authentication authentication;
         try {
@@ -70,14 +72,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
 
         map.put("error_message", "成功");
-        map.put("token", jwt);
-
+        data.put("token", jwt);
+        UserVO userVO = new UserVO().setUserId(user.getId()).setUsername(username).setAvatar(user.getAvatar());
+        data.put("user", userVO);
+        map.put("data", data);
         return map;
     }
 
     @Override
-    public Map<String, String> register(String username, String password) {
-        Map<String, String> map = new HashMap<>();
+    public Map<String, Object> register(String username, String password) {
+        Map<String, Object> map = new HashMap<>();
         if (username == null) {
             map.put("error_message", "用户名不能为空");
             return map;

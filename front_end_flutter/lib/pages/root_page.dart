@@ -1,8 +1,13 @@
 
 import 'package:flutter/material.dart';
+import 'package:front_end_flutter/common/Global.dart';
 import 'package:front_end_flutter/pages/root_pages/learning_page.dart';
 import 'package:front_end_flutter/pages/root_pages/profile.dart';
 import 'package:front_end_flutter/pages/root_pages/word_book_page.dart';
+import 'package:front_end_flutter/pages/sub_pages/login_page.dart';
+import 'package:provider/provider.dart';
+
+import '../states/userModel.dart';
 
 
 class RootPage extends StatefulWidget {
@@ -40,19 +45,28 @@ class _RootPageState extends State<RootPage> {
     });
   }
 
+  Widget _buildBody() {
+    UserModel userModel = Provider.of<UserModel>(context);
+    if (!userModel.isLogin) {
+      return const LoginPage();
+    } else {
+      return Scaffold(
+          body: _pages[_currentIndex],
+          bottomNavigationBar: BottomNavigationBar(
+            items: navItemList,
+            currentIndex: _currentIndex,
+            onTap: _onTabClick,
+            type: BottomNavigationBarType.fixed,
+          )
+      );
+    }
+  }
+
 
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: _pages[_currentIndex],
-        bottomNavigationBar: BottomNavigationBar(
-          items: navItemList,
-          currentIndex: _currentIndex,
-          onTap: _onTabClick,
-          type: BottomNavigationBarType.fixed,
-        )
-    );
+    return _buildBody();
   }
 
   BottomNavigationBarItem _bottomNavBarItem(String key, String value) {

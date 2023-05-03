@@ -14,7 +14,7 @@ import java.util.Map;
  * @since 2023-04-28
  */
 public interface IUserService extends IService<User> {
-    Map<String, String> getInfo();
-    Map<String, String> getToken(String username, String password);
-    Map<String, String> register(String username, String password);
+    Map<String, Object> getInfo();
+    Map<String, Object> getToken(String username, String password);
+    Map<String, Object> register(String username, String password);
 }

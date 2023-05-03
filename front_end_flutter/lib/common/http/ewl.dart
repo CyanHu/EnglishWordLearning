@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
+import '../../models/index.dart';
 import '../Global.dart';
 
 class EWL {
@@ -22,8 +24,37 @@ class EWL {
     // 添加缓存插件
     dio.interceptors.add(Global.netCache);
     // 设置用户token（可能为null，代表未登录）
-    dio.options.headers[HttpHeaders.authorizationHeader] = Global.profile.token;
-
+    dio.options.headers[HttpHeaders.authorizationHeader] = Global.profile.token != null ? 'Bearer ${Global.profile.token}' : null;
   }
+
+  Future<User?> login(String username, String password) async {
+    var r = await dio.post(
+      "/user/account/token",
+      data: {'username': username, 'password' : password},
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    if (r.data['error_message'] != "成功") {
+      EasyLoading.showError('登录失败');
+      return null;
+    } else {
+      Global.profile.token = r.data['data']['token'];
+      Global.netCache.cache.clear();
+      dio.options.headers[HttpHeaders.authorizationHeader] = 'Bearer ${r.data['data']['token']}';
+      return User.fromJson(r.data['data']['user']);
+    }
+  }
+
+  Future<WordData> getWordData(num wordId) async {
+    var r = await dio.get(
+      "/wordData/$wordId",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return WordData.fromJson(r.data['data']['wordData']);
+  }
+
 
 }
