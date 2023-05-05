@@ -9,4 +9,11 @@
         select count(*) as sum  from learning_word_record
         where  user_id = #{userId}
     </select>
+    <select id="getRecentWeekWordCountsByUserId" parameterType="java.lang.Integer"  resultType="map">
+        SELECT datediff(now(), date(learning_time)) as `interval`, count(learning_type = '学习' or null) as learning_count, count(learning_type = '复习' or null) as review_count
+        FROM learning_word_record
+        where DATE_SUB(CURDATE(), INTERVAL 6 DAY) &lt;= date(learning_time)
+        AND user_id = #{userId}
+        group by `interval`
+    </select>
 </mapper>

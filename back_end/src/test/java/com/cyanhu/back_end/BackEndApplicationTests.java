@@ -32,6 +32,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Stream;
 
 @SpringBootTest
 class BackEndApplicationTests {
@@ -192,6 +193,30 @@ class BackEndApplicationTests {
 		System.out.println(signInRecordService.count(new QueryWrapper<SignInRecord>().eq("user_id", 2)));
 
 	}
+
+	@Test
+	void recentWeekLearningTimeRecordTest() {
+		List<Map<String, Object>> mapList = learningTimeRecordService.getRecentWeekTimeByUserId(1);
+		List<Map<String, Object>> mapList1 = learningWordRecordService.getRecentWeekWordCountsByUserId(1);
+
+		List<Map<String, Object>> timeList = mapList.stream().map(e -> Map.of("interval", e.get("interval"), "minutes", (int) e.get("sum") / 60)).toList();
+		System.out.println(mapList);
+		System.out.println(mapList1);
+		System.out.println("==========================");
+	}
+
+	@Test
+	void mapTest() {
+		List<String> list = new ArrayList<>();
+		list.add("123");
+		list.add("456");
+		list.add("789");
+		List<String> list1 = list.stream().map(e -> e + "123").toList();
+		Map<String, Object> map = new HashMap<>();
+		map.put("interval", 1);
+		map.put("learning_time", 100);
+	}
+
 
 	@Test
 	void test1() {

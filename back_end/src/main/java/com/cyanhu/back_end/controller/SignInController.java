@@ -32,7 +32,7 @@ public class SignInController {
         long signInDay = signInRecordService.count(new QueryWrapper<SignInRecord>().eq("user_id", userId));
         SingleSignInRecordVO singleSignInRecordVO = new SingleSignInRecordVO();
         singleSignInRecordVO.setSignIn(isSignIn).setSignInDay((int)signInDay);
-        return Map.of("error_message", "成功", "data", singleSignInRecordVO);
+        return Map.of("error_message", "成功", "data", Map.of("singleSignInRecord", singleSignInRecordVO));
     }
     @PostMapping("/signIn/single/{userId}")
     public Map<String, Object> SignIn(@PathVariable Integer userId) {

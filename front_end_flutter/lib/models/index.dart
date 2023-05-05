@@ -1,6 +1,13 @@
+export 'learningDataBrief.dart' ; 
+export 'notice.dart' ; 
 export 'cacheConfig.dart' ; 
 export 'sentence.dart' ; 
 export 'user.dart' ; 
 export 'meaning.dart' ; 
+export 'timeRecordItem.dart' ; 
+export 'singleSignInRecord.dart' ; 
+export 'wordCountsRecordItem.dart' ; 
 export 'wordData.dart' ; 
+export 'learningDataItem.dart' ; 
+export 'recentWeekLearningData.dart' ; 
 export 'profile.dart' ; 

@@ -7,6 +7,7 @@ part of 'wordData.dart';
 // **************************************************************************
 
 WordData _$WordDataFromJson(Map<String, dynamic> json) => WordData()
+  ..wordId = json['wordId'] as num
   ..word = json['word'] as String
   ..enPhoneticSymbol = json['enPhoneticSymbol'] as String?
   ..amPhoneticSymbol = json['amPhoneticSymbol'] as String?
@@ -18,6 +19,7 @@ WordData _$WordDataFromJson(Map<String, dynamic> json) => WordData()
       .toList();
 
 Map<String, dynamic> _$WordDataToJson(WordData instance) => <String, dynamic>{
+      'wordId': instance.wordId,
       'word': instance.word,
       'enPhoneticSymbol': instance.enPhoneticSymbol,
       'amPhoneticSymbol': instance.amPhoneticSymbol,

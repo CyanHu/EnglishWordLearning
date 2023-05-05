@@ -9,12 +9,12 @@
         select sum(timestampdiff(SECOND, start_time, end_time)) as sum  from learning_time_record
         where  user_id = #{userId}
     </select>
-    <select id="getRecentWeekTimeByUserId" parameterType="java.lang.Integer"  resultType="java.lang.Integer">
-        SELECT timestampdiff(DAY, end_time, CURRENT_TIME) `interval`, timestampdiff(SECOND, start_time , end_time) sum
+    <select id="getRecentWeekTimeByUserId" parameterType="java.lang.Integer"  resultType="map">
+        SELECT datediff(now(), date(end_time)) as `interval`, sum(timestampdiff(SECOND, start_time , end_time)) as sum
         FROM learning_time_record
         where DATE_SUB(CURDATE(), INTERVAL 6 DAY) &lt;= date(end_time)
         AND user_id = #{userId}
-        ORDER BY `INTERVAL`
+        GROUP BY `interval`
     </select>
     <select id="getRecentYearTimeByUserId" parameterType="java.lang.Integer"  resultType="java.lang.Long">
         SELECT

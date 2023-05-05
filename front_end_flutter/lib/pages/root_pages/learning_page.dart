@@ -17,46 +17,52 @@ class _LearningPageState extends State<LearningPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-            onPressed: () =>toLearningSubPage("learning"),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Learning",
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("123")
-                ],
-              ),
-            )),
-        SizedBox(
-          width: 20,
-        ),
-        ElevatedButton(
-            onPressed: () => toLearningSubPage("review"),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Review",
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
-                  ),
-                  SizedBox(height: 5,),
-                  Text("123")
-                ],
-              ),
-            )),
-      ],
-    ));
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(" 学习"),
+        centerTitle: true,
+      ),
+      body: Center(
+          child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+              onPressed: () =>toLearningSubPage("learning"),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Learning",
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+                    ),
+                    SizedBox(height: 5,),
+                    Text("123")
+                  ],
+                ),
+              )),
+          SizedBox(
+            width: 20,
+          ),
+          ElevatedButton(
+              onPressed: () => toLearningSubPage("review"),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Review",
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+                    ),
+                    SizedBox(height: 5,),
+                    Text("123")
+                  ],
+                ),
+              )),
+        ],
+      )),
+    );
   }
 }

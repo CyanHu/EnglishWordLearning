@@ -30,4 +30,8 @@ public class Notice {
     private String noticeType;
 
     private LocalDateTime noticeTime;
+
+    private String description;
+
+    private String pictureUrl;
 }

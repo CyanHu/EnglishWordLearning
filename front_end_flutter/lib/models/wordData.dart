@@ -7,6 +7,7 @@ part 'wordData.g.dart';
 class WordData {
   WordData();
 
+  late num wordId;
   late String word;
   String? enPhoneticSymbol;
   String? amPhoneticSymbol;

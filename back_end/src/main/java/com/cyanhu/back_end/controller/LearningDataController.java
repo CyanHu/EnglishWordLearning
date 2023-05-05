@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,7 +35,20 @@ public class LearningDataController {
 
         learningDataBriefVO.setTodayLearningData(new LearningDataVO().setLearningMinutes(todayMinutes).setLearningWordCounts(todayWordCounts));
         learningDataBriefVO.setTotalLearningData(new LearningDataVO().setLearningMinutes(totalMinutes).setLearningWordCounts(totalWordCounts));
-        return Map.of("error_message", "成功", "data", learningDataBriefVO);
+        return Map.of("error_message", "成功", "data", Map.of("learningDataBrief", learningDataBriefVO));
+    }
+
+    @GetMapping("/learningData/recentWeek/{userId}")
+    public Map<String, Object> getRecentWeekLearningData(@PathVariable Integer userId) {
+        List<Map<String, Object>> mapList1 = learningTimeRecordService.getRecentWeekTimeByUserId(userId);
+        List<Map<String, Object>> timeList = mapList1.stream().map(e -> Map.of("interval", e.get("interval"), "minutes", ((BigDecimal)(e.get("sum"))).intValue() / 60)).toList();
+        List<Map<String, Object>> mapList2 = learningWordRecordService.getRecentWeekWordCountsByUserId(userId);
+
+        long totalTime = learningTimeRecordService.getTotalTimeByUserId(userId);
+        int totalMinutes = (int) (totalTime / 60);
+        int totalWordCounts = learningWordRecordService.getTotalWordCountsByUserId(userId);
+
+        return Map.of("error_message", "成功", "data", Map.of("recentWeekLearningData", Map.of("timeList", timeList, "wordCountList", mapList2)));
     }
 
 }

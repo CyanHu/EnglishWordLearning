@@ -23,7 +23,17 @@ class _WordBookPageState extends State<WordBookPage> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [Text("当前词库"),Spacer()],
+              children: [
+                Text(
+                  "当前词库",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Spacer(),
+                Text(
+                  "更换",
+                  style: TextStyle(color: Colors.cyan),
+                )
+              ],
             ),
           ),
           Card(
@@ -38,7 +48,14 @@ class _WordBookPageState extends State<WordBookPage> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [Text("我的词库"),Spacer(), Text("管理")],
+              children: [
+                Text(
+                  "我的词库",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Spacer(),
+                Text("管理", style: TextStyle(color: Colors.cyan),)
+              ],
             ),
           ),
           Card(

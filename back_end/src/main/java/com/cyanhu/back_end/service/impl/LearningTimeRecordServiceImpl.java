@@ -7,6 +7,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <p>
  *  服务实现类
@@ -31,5 +34,10 @@ public class LearningTimeRecordServiceImpl extends ServiceImpl<LearningTimeRecor
         Long time = learningTimeRecordMapper.getTotalTimeByUserId(userId);
         if (time == null) return 0;
         return time;
+    }
+
+    @Override
+    public List<Map<String, Object>> getRecentWeekTimeByUserId(Integer userId) {
+        return learningTimeRecordMapper.getRecentWeekTimeByUserId(userId);
     }
 }
