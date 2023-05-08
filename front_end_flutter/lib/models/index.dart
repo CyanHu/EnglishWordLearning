@@ -1,5 +1,8 @@
+export 'wordBook.dart' ; 
+export 'learningBrief.dart' ; 
 export 'learningDataBrief.dart' ; 
 export 'notice.dart' ; 
+export 'reviewItem.dart' ; 
 export 'cacheConfig.dart' ; 
 export 'sentence.dart' ; 
 export 'user.dart' ; 
@@ -10,4 +13,5 @@ export 'wordCountsRecordItem.dart' ;
 export 'wordData.dart' ; 
 export 'learningDataItem.dart' ; 
 export 'recentWeekLearningData.dart' ; 
+export 'learningItem.dart' ; 
 export 'profile.dart' ; 

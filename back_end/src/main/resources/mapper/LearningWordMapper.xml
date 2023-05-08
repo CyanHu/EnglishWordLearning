@@ -2,4 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.cyanhu.back_end.mapper.LearningWordMapper">
 
+    <select id="getNonLearningWordCount" parameterType="java.lang.Integer"  resultType="java.lang.Integer">
+        SELECT count(word_id) FROM
+            ((SELECT word_id FROM book_word WHERE book_id = #{bookId})  except (SELECT word_id FROM learning_word WHERE user_id = #{userId} and learning_count > 0)) t1
+    </select>
+
+    <select id="getNonLearningWordIdList" parameterType="java.lang.Integer"  resultType="java.lang.Integer">
+        SELECT word_id FROM
+            ((SELECT word_id FROM book_word WHERE book_id = #{bookId})  except (SELECT word_id FROM learning_word WHERE user_id = #{userId} and learning_count > 0)) t1
+        limit 10
+    </select>
+
 </mapper>

@@ -1,4 +1,4 @@
-package com.cyanhu.back_end.entity.dto;
+package com.cyanhu.back_end.entity.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -6,12 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class UpdatedLearningWordDTO {
-    private Integer userId;
+@AllArgsConstructor
+public class ReviewItemVO {
     private Integer wordId;
-    private Integer learningCount;
-    private String firstType;
+    private Integer learningWordId;
 }

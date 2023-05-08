@@ -6,12 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Accessors(chain = true)
-public class UpdatedLearningWordDTO {
-    private Integer userId;
-    private Integer wordId;
-    private Integer learningCount;
+public class ReviewItemDTO {
+    private Integer learningWordId;
     private String firstType;
 }

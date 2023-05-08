@@ -21,7 +21,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("单词书"),
+        title: Text("我的"),
         centerTitle: true,
       ),
       body: Padding(

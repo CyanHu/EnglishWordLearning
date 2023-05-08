@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class NextWordCard extends StatelessWidget {
-  const NextWordCard({Key? key}) : super(key: key);
+  const NextWordCard({Key? key, required this.selectNextButton}) : super(key: key);
+  final Function selectNextButton;
 
   @override
   Widget build(BuildContext context) {
@@ -10,7 +11,7 @@ class NextWordCard extends StatelessWidget {
         height: 50,
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed:()=> selectNextButton(),
           child: Text("下一个"),
         ));
   }

@@ -17,6 +17,7 @@ class _EnglishWordCardState extends State<EnglishWordCard> {
   late int type;
   late String symbol;
   late String soundURL;
+
   final _player = AudioPlayer();
 
   void _playSound() async {
@@ -25,18 +26,21 @@ class _EnglishWordCardState extends State<EnglishWordCard> {
 
   @override
   void initState() {
-    type = widget.symbolAm == null ? 0 : 1;
+    type = widget.symbolAm != null ? 0 : 1;
     symbol = (type == 0 ? widget.symbolAm : widget.symbolEn)!;
     soundURL = "https://dict.youdao.com/dictvoice?type=${type}&audio=${widget.word}";
     super.initState();
   }
 
   void switchSymbolType() {
-    setState(() {
-      type = (type + 1) % 2;
-      symbol = (type == 0 ? widget.symbolAm : widget.symbolEn)!;
-      soundURL = "https://dict.youdao.com/dictvoice?type=${type}&audio=${widget.word}";
-    });
+    print('${widget.symbolAm}, ${widget.symbolEn}');
+    if (widget.symbolAm != null && widget.symbolEn != null) {
+      setState(() {
+        type = (type + 1) % 2;
+        symbol = (type == 0 ? widget.symbolAm : widget.symbolEn)!;
+        soundURL = "https://dict.youdao.com/dictvoice?type=${type}&audio=${widget.word}";
+      });
+    }
   }
 
   @override

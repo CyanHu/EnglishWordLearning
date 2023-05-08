@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -94,6 +95,140 @@ class EWL {
     );
     return SingleSignInRecord.fromJson(r.data['data']['singleSignInRecord']);
   }
+
+  Future<String> addWordToRawWordBook(String word) async {
+    var r = await dio.post(
+      "/wordBook/rawBook/${Global.profile.user!.userId}/$word",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<WordBook> getSelectedWordBook() async {
+    var r = await dio.get(
+      "/wordBook/selected/${Global.profile.user!.userId}",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return WordBook.fromJson(r.data['data']['selectedWordBook']);
+  }
+
+  Future<List<WordBook>> getUserWordBookList() async {
+    var r = await dio.get(
+      "/wordBook/user/${Global.profile.user!.userId}",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['data']['userWordBookList'].map<WordBook>((e) => WordBook.fromJson(e)).toList();
+  }
+
+  Future<List<WordBook>> getSystemWordBookList() async {
+    var r = await dio.get(
+      "/wordBook/system",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['data']['systemWordBookList'].map<WordBook>((e) => WordBook.fromJson(e)).toList();
+  }
+
+  Future<String> updateSelectedWordBook(int bookId) async {
+    var r = await dio.post(
+      "/wordBook/selected/update/${Global.profile.user!.userId}/$bookId",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    if (r.data['error_message'] == "成功") return "更新成功";
+    return "更新失败";
+  }
+
+  Future<LearningBrief> getLearningBrief() async {
+    var r = await dio.get(
+      "/learning/brief/${Global.profile.user!.userId}",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return LearningBrief.fromJson(r.data['data']);
+  }
+
+  Future<List<LearningItem>> getNonLearningItemList() async {
+    var r = await dio.get(
+      "/learning/nonLearningWordIdList/${Global.profile.user!.userId}",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['data']['nonLearningWordIdList'].map<LearningItem>((e) => LearningItem()..wordId = e..reviewCount=0).toList();
+  }
+
+  Future<List<ReviewItem>> getReviewItemList() async {
+    var r = await dio.get(
+      "/learning/reviewWordIdList/${Global.profile.user!.userId}",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['data']['reviewItemVOList'].map<ReviewItem>((e) => ReviewItem()..wordId = e['wordId']..firstType=null..reviewCount=0..learningWordId = e['learningWordId']).toList();
+  }
+
+  Future<String> learning() async {
+    List<num> learningList =  Global.getNonLearningList()!.map<num>((e) => e.wordId).toList();
+    String str = jsonEncode(learningList);
+    var r = await dio.post(
+      "/learning/learning/${Global.profile.user!.userId}",
+      data: str,
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<String> review() async {
+
+    List<Map<String, dynamic>> reviewList =  Global.getReviewList()!.map<Map<String, dynamic>>((e) => {'learningWordId': e.learningWordId, 'firstType': e.firstType}).toList();
+    String str = jsonEncode(reviewList);
+    var r = await dio.post(
+      "/learning/review/${Global.profile.user!.userId}",
+      data: str,
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<String> addLearningData({required String learningType, required DateTime startTime, required DateTime endTime, required List<int> wordIdList}) async {
+    Map<String, dynamic> requestBody = {
+      "userId": Global.profile.user!.userId,
+      "learningType": learningType,
+      "startTime": startTime.millisecondsSinceEpoch,
+      "endTime": endTime.millisecondsSinceEpoch,
+      "wordIdList": wordIdList,
+    };
+
+    var r = await dio.post(
+      "/learning/record/add",
+      data: jsonEncode(requestBody),
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+
+    return r.data["error_message"];
+
+  }
+
+
+
+
+
 
 
 

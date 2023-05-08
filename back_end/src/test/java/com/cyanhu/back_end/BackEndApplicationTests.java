@@ -1,5 +1,6 @@
 package com.cyanhu.back_end;
 
+import cn.hutool.core.date.DateTime;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -24,6 +25,7 @@ import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.options.PDFOptions;
+import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,7 +42,7 @@ class BackEndApplicationTests {
 	@Test
 	void crawlerTest() {
 		try {
-			String word = "phone";
+			String word = "permission";
 			//自动下载，第一次下载后不会再下载
 			ArrayList<String> arrayList = new ArrayList<>();
 			//生成pdf必须在无厘头模式下才能生效
@@ -215,6 +217,20 @@ class BackEndApplicationTests {
 		Map<String, Object> map = new HashMap<>();
 		map.put("interval", 1);
 		map.put("learning_time", 100);
+	}
+
+	@Test
+	void getLearningBrief1Test() {
+		int nonLearningWordCount = learningWordService.getNonLearningWordCount(1, 18);
+		long needReviewWordCount = learningWordService.count(new QueryWrapper<LearningWord>().le("next_review_time", DateTime.now()));
+		System.out.println(nonLearningWordCount);
+		System.out.println(needReviewWordCount);
+	}
+
+
+	@Test
+	void get10Test() {
+		List<Integer> nonLearningWordIdList = learningWordService.getNonLearningWordIdList(1, 18);
 	}
 
 

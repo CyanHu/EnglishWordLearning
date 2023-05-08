@@ -5,7 +5,6 @@ import 'package:front_end_flutter/common/http/ewl.dart';
 import 'package:front_end_flutter/components/login_text_field.dart';
 import 'package:front_end_flutter/models/index.dart';
 import 'package:front_end_flutter/pages/root_page.dart';
-import 'package:front_end_flutter/services/account_service.dart';
 import 'package:provider/provider.dart';
 
 import '../../states/userModel.dart';

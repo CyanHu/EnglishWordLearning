@@ -2,6 +2,7 @@ package com.cyanhu.back_end.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.cyanhu.back_end.entity.*;
 import com.cyanhu.back_end.entity.dto.AddedWordDataDTO;
 import com.cyanhu.back_end.entity.dto.WordBookDTO;
@@ -27,11 +28,23 @@ public class WordBookController {
     IBookWordService bookWordService;
     @Autowired
     IWordBookService wordBookService;
+    @Autowired
+    IUserService userService;
 
     @Transactional
     @PostMapping(value = "/wordBook/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Map<String, Object>  uploadWordBook(@ModelAttribute WordBookDTO wbDTO) throws IOException {
+
         if (Objects.equals(wbDTO.getBookType(), "用户") && wbDTO.getUserId() == null) return Map.of("error_message","用户单词书没有用户id");
+        if (wbDTO.getBookType().equals("用户")) {
+            User user = userService.getById(wbDTO.getUserId());
+            if (user == null) {
+                return Map.of("error_message"," 该用户不存在");
+            }
+        }
+
+
+
         //自动下载，第一次下载后不会再下载
         ArrayList<String> arrayList = new ArrayList<>();
         //生成pdf必须在无厘头模式下才能生效
@@ -40,37 +53,52 @@ public class WordBookController {
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
+
+
         AddedWordDataDTO addedWordDataDTO;
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(wbDTO.getBookFile().getInputStream()));
         String word;
         Map<String, Object> res = new HashMap<>();
-        List<String> existWordList = new ArrayList<>();
         List<String> nonExistWordList = new ArrayList<>();
         WordBook wordBook = new WordBook();
         wordBook.setBookDescription(wbDTO.getBookDescription());
         wordBook.setBookType(wbDTO.getBookType());
         wordBook.setBookTitle(wbDTO.getBookTitle());
         wordBook.setUserId(wbDTO.getUserId());
+        WordBook wordBook1;
+        if ("系统".equals(wbDTO.getBookType())) {
+            wordBook1 = wordBookService.getOne(new QueryWrapper<WordBook>().eq("book_title", wbDTO.getBookTitle()).eq("book_type", wbDTO.getBookType()));
+        } else if ("用户".equals(wbDTO.getBookType()))  {
+            wordBook1 = wordBookService.getOne(new QueryWrapper<WordBook>().eq("book_title", wbDTO.getBookTitle()).eq("book_type", wbDTO.getBookType()).eq("user_id", wbDTO.getUserId()));
+        } else {
+            return Map.of("error_message", "bookType 类型错误");
+        }
+
+        if (wordBook1 != null) return Map.of("error_message","该单词书已存在");
         wordBookService.save(wordBook);
         Integer bookId = wordBook.getId();
         while ((word=bufferedReader.readLine())!=null){
             word = word.trim();
+            WordData wordData = wordDataService.getOne(new QueryWrapper<WordData>().eq("word", word));
+            if (wordData != null) {
+                continue;
+            }
             try {
                  addedWordDataDTO = crawlWordData(word, page);
                  if (addedWordDataDTO == null) {
                      nonExistWordList.add(word);
                      continue;
                  }
-                 Map<String, Object> map1 = addWordData(addedWordDataDTO);
-                 if (map1.get("error_message") == "单词已存在") existWordList.add(word);
-                 Integer wordId = (Integer) ((Map)map1.get("data")).get("wordId");
+                 Integer wordId = addWordData(addedWordDataDTO);;
                  bookWordService.save(new BookWord().setBookId(bookId).setWordId(wordId));
             } catch (InterruptedException e) {
+                System.out.println("出问题的单词:" + word);
                 throw new RuntimeException(e);
             }
         }
+        browser.close();
         res.put("error_message", "成功");
-        res.put("data", Map.of("exist_list", existWordList, "non-exist_list", nonExistWordList));
+        res.put("data", Map.of("non-exist_list", nonExistWordList));
         return res;
     }
 
@@ -83,46 +111,146 @@ public class WordBookController {
     @Autowired
     IWordPronunciationService wordPronunciationService;
 
+
     @Transactional
-    public Map<String, Object> addWordData(AddedWordDataDTO dataDTO) {
+    public int addWordData(AddedWordDataDTO dataDTO) {
+        String word = dataDTO.getWord();
 
         Map<String, Object> map = new HashMap<>();
 
-        WordData wordData = new WordData().setWord(dataDTO.getWord());
-        QueryWrapper<WordData> wrapper = new QueryWrapper<>();
-        wrapper.eq("word", wordData.getWord());
-        wordData = wordDataService.getOne(wrapper);
-        if (wordData != null) {
-            map.put("error_message", "单词已存在");
-            map.put("data", Map.of("word", wordData.getWord(), "wordId", wordData.getId()));
-            return map;
-        }
+        WordData wordData;
+        wordData = new WordData().setWord(word);
         wordDataService.save(wordData);
         Integer wordId = wordData.getId();
 
-        WordPronunciation wordPronunciationEn = new WordPronunciation().setWordId(wordId).setType("英").setPhoneticSymbol(dataDTO.getEnPhoneticSymbol());
-        WordPronunciation wordPronunciationAm = new WordPronunciation().setWordId(wordId).setType("美").setPhoneticSymbol(dataDTO.getEnPhoneticSymbol());
-
-        wordPronunciationService.save(wordPronunciationAm);
-        wordPronunciationService.save(wordPronunciationEn);
-
-        for (WordExampleSentence wordExampleSentence : dataDTO.getExampleSentences()) {
-            wordExampleSentence.setWordId(wordId);
-            wordExampleSentence.setSource("Collins");
-            wordExampleSentenceService.save(wordExampleSentence);
+        if (dataDTO.getEnPhoneticSymbol() != null && !dataDTO.getEnPhoneticSymbol().isEmpty()) {
+            WordPronunciation wordPronunciationEn = new WordPronunciation().setWordId(wordId).setType("英").setPhoneticSymbol(dataDTO.getEnPhoneticSymbol());
+            wordPronunciationService.save(wordPronunciationEn);
         }
 
-        for (WordMeaning wordMeaning : dataDTO.getMeanings()) {
-            wordMeaning.setWordId(wordId);
-            wordMeaningService.save(wordMeaning);
+        if (dataDTO.getAmPhoneticSymbol() != null && !dataDTO.getAmPhoneticSymbol().isEmpty()) {
+            WordPronunciation wordPronunciationAm = new WordPronunciation().setWordId(wordId).setType("美").setPhoneticSymbol(dataDTO.getAmPhoneticSymbol());
+
+            wordPronunciationService.save(wordPronunciationAm);
         }
 
 
-        map.put("error_message", "成功");
-        map.put("data", Map.of("word", wordData.getWord(), "wordId", wordData.getId()));
-        return map;
+
+
+        if (!dataDTO.getExampleSentences().isEmpty()) {
+            for (WordExampleSentence wordExampleSentence : dataDTO.getExampleSentences()) {
+                if (wordExampleSentence != null) {
+                    wordExampleSentence.setWordId(wordId);
+                    wordExampleSentence.setSource("Collins");
+                    wordExampleSentenceService.save(wordExampleSentence);
+                }
+            }
+        }
+
+
+        if (!dataDTO.getMeanings().isEmpty()) {
+            for (WordMeaning wordMeaning : dataDTO.getMeanings()) {
+                if (wordMeaning != null) {
+                    wordMeaning.setWordId(wordId);
+                    wordMeaningService.save(wordMeaning);
+                }
+            }
+        }
+        return wordData.getId();
 
     }
+
+    @Transactional
+    @PostMapping("/wordBook/rawBook/{userId}/{word}")
+    public Map<String, Object> addWordToRawBook (@PathVariable String word, @PathVariable Integer userId) throws IOException {
+        User user = userService.getById(userId);
+        if (user == null) {
+            return Map.of("error_message", "用户不存在");
+        }
+        WordBook rawWordBook = wordBookService.getOne(new QueryWrapper<WordBook>().eq("user_id", userId).eq("book_title", "生词本"));
+        if (rawWordBook == null) {
+            rawWordBook = new WordBook();
+            rawWordBook.setUserId(userId).setBookTitle("生词本").setBookDescription("这是生词本").setBookType("用户");
+            wordBookService.save(rawWordBook);
+        }
+
+        WordData wordData = wordDataService.getOne(new QueryWrapper<WordData>().eq("word", word));
+
+        if (wordData != null) {
+            BookWord bookWord = bookWordService.getOne(new QueryWrapper<BookWord>().eq("word_id", wordData.getId()).eq("book_id", rawWordBook.getId()));
+            if (bookWord != null) {
+                return Map.of("error_message", "单词已添加");
+            } else {
+                bookWordService.save(new BookWord().setBookId(rawWordBook.getId()).setWordId(wordData.getId()));
+                return Map.of("error_message", "成功");
+            }
+        }
+
+
+        //自动下载，第一次下载后不会再下载
+        ArrayList<String> arrayList = new ArrayList<>();
+        //生成pdf必须在无厘头模式下才能生效
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome").build();
+        arrayList.add("--no-sandbox");
+        arrayList.add("--disable-setuid-sandbox");
+        Browser browser = Puppeteer.launch(options);
+        Page page = browser.newPage();
+        AddedWordDataDTO addedWordDataDTO;
+        int wordId;
+
+
+        try {
+            addedWordDataDTO = crawlWordData(word, page);
+            if (addedWordDataDTO == null) {
+                return Map.of("error_message", "单词不存在");
+            }
+            wordId = addWordData(addedWordDataDTO);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        bookWordService.save(new BookWord().setBookId(rawWordBook.getId()).setWordId(wordId));
+
+        browser.close();
+
+        return Map.of("error_message", "成功");
+
+    }
+    @Autowired
+    IUserSelectedBookService userSelectedBookService;
+    @GetMapping("/wordBook/selected/{userId}")
+    public Map<String, Object> getSelectedWordBook(@PathVariable Integer userId) {
+        UserSelectedBook userSelectedBook = userSelectedBookService.getOne(new QueryWrapper<UserSelectedBook>().eq("user_id", userId));
+        if (userSelectedBook == null) {
+            return Map.of("error_message", "该用户未选择单词书");
+        }
+        WordBook wordBook = wordBookService.getById(userSelectedBook.getBookId());
+        return Map.of("error_message", "成功", "data", Map.of("selectedWordBook", wordBook));
+    }
+    @GetMapping("/wordBook/user/{userId}")
+    public Map<String, Object> getUserWordBook(@PathVariable Integer userId) {
+        List<WordBook> wordBookList = wordBookService.list(new QueryWrapper<WordBook>().eq("user_id", userId));
+        return Map.of("error_message", "成功", "data", Map.of("userWordBookList", wordBookList));
+    }
+
+    @GetMapping("/wordBook/system")
+    public Map<String, Object> getSystemWordBook() {
+        List<WordBook> wordBookList = wordBookService.list(new QueryWrapper<WordBook>().eq("book_type", "系统"));
+        return Map.of("error_message", "成功", "data", Map.of("systemWordBookList", wordBookList));
+    }
+
+
+    @PostMapping("/wordBook/selected/update/{userId}/{bookId}")
+    public Map<String, Object> updateSelectedWordBook(@PathVariable Integer bookId, @PathVariable Integer userId) {
+        UserSelectedBook userSelectedBook = new UserSelectedBook();
+        userSelectedBook.setBookId(bookId).setUserId(userId);
+        UpdateWrapper<UserSelectedBook> wrapper = new UpdateWrapper<UserSelectedBook>().eq("user_id", userId).set("book_id", bookId);
+        userSelectedBookService.saveOrUpdate(userSelectedBook, wrapper);
+        return Map.of("error_message", "成功");
+    }
+
+
+
 
     public AddedWordDataDTO crawlWordData(String word, Page page) throws InterruptedException {
         page.goTo("http://dict.youdao.com/w/" + word);

@@ -72,7 +72,7 @@ class RecentWeekInputBarChart extends StatelessWidget {
     for (WordCountsRecordItem value in wordCountList) {
       list1[value.interval.toInt()] = CountItem(learningCount: value.learningCount.toInt(), reviewCount: value.reviewCount.toInt());
     }
-    return List.generate(7, (index) => generateGroupData(index, list1[index].learningCount.toDouble(), list1[index].learningCount.toDouble())).reversed.toList();
+    return List.generate(7, (index) => generateGroupData(index, list1[index].learningCount.toDouble(), list1[index].reviewCount.toDouble())).reversed.toList();
   }
 
   @override

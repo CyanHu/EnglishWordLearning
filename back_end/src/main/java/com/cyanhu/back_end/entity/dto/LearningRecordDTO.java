@@ -18,4 +18,15 @@ public class LearningRecordDTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private List<Integer> wordIdList;
+
+    @Override
+    public String toString() {
+        return "LearningRecordDTO{" +
+                "userId=" + userId +
+                ", learningType='" + learningType + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", wordIdList=" + wordIdList +
+                '}';
+    }
 }
