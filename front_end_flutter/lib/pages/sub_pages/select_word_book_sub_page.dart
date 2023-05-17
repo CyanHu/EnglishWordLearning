@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:front_end_flutter/components/word_book_blank_item.dart';
 import 'package:front_end_flutter/models/index.dart';
 
 import '../../common/Global.dart';
@@ -42,6 +43,7 @@ class SelectWordBookSubPage extends StatelessWidget {
                       return Text("Error: ${snapshot.error}");
                     } else {
                       // 请求成功，显示数据
+                      if (snapshot.data.length == 0) return WordBookBlankItem(text: "未创建词库");
                       return Column(
                         children: _wordBookItemList(snapshot.data, context),
                       );

@@ -31,21 +31,13 @@ class _LoginPageState extends State<LoginPage> {
     var password = _passwordController.value.text;
     User? user;
     EasyLoading.show(status: "登录中...");
-    try {
-      user = await EWL().login(username, password);
-      // 因为登录页返回后，首页会build，所以我们传入false，这样更新user后便不触发更新。
-      Provider.of<UserModel>(context, listen: false).user = user;
-    } on DioError catch(e) {
-      //登录失败则提示
-      if (e.response?.statusCode == 401) {
-        EasyLoading.showError("用户名或密码错误");
-      } else {
-        EasyLoading.showError(e.toString());
-      }
-    } finally {
-      // 隐藏loading框
-      EasyLoading.dismiss();
+
+    user = await EWL().login(username, password);
+    Provider.of<UserModel>(context, listen: false).user = user;
+    if (user == null) {
+      EasyLoading.showError("用户名或密码错误");
     }
+    EasyLoading.dismiss();
   }
 
   void switchPage() {
@@ -54,11 +46,16 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  void register() {
+  void register() async {
     var username = _usernameController.value.text;
     var password = _passwordController.value.text;
     var confirmedPassword = _confirmedPasswordController.value.text;
-    print("$username, $password");
+    String res = await EWL().register(username, password, confirmedPassword);
+    if (res == "成功") {
+      EasyLoading.showSuccess("注册成功");
+    } else {
+      EasyLoading.showError(res);
+    }
   }
 
   @override
@@ -133,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25),
                   child: ElevatedButton(
-                      onPressed: login,
+                      onPressed: _isRegisterPage ? register : login,
                       style: ButtonStyle(
                         backgroundColor:
                             MaterialStateProperty.all(Colors.black),

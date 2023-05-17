@@ -35,6 +35,7 @@ public class WordBookController {
     @PostMapping(value = "/wordBook/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Map<String, Object>  uploadWordBook(@ModelAttribute WordBookDTO wbDTO) throws IOException {
 
+        //判断类型的正确性和用户是否存在
         if (Objects.equals(wbDTO.getBookType(), "用户") && wbDTO.getUserId() == null) return Map.of("error_message","用户单词书没有用户id");
         if (wbDTO.getBookType().equals("用户")) {
             User user = userService.getById(wbDTO.getUserId());
@@ -44,10 +45,8 @@ public class WordBookController {
         }
 
 
-
-        //自动下载，第一次下载后不会再下载
+        //爬虫启动
         ArrayList<String> arrayList = new ArrayList<>();
-        //生成pdf必须在无厘头模式下才能生效
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome").build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
@@ -66,6 +65,8 @@ public class WordBookController {
         wordBook.setBookTitle(wbDTO.getBookTitle());
         wordBook.setUserId(wbDTO.getUserId());
         WordBook wordBook1;
+
+        //判断单词书是否存在，如果存在则返回错误信息
         if ("系统".equals(wbDTO.getBookType())) {
             wordBook1 = wordBookService.getOne(new QueryWrapper<WordBook>().eq("book_title", wbDTO.getBookTitle()).eq("book_type", wbDTO.getBookType()));
         } else if ("用户".equals(wbDTO.getBookType()))  {
@@ -73,9 +74,10 @@ public class WordBookController {
         } else {
             return Map.of("error_message", "bookType 类型错误");
         }
-
         if (wordBook1 != null) return Map.of("error_message","该单词书已存在");
         wordBookService.save(wordBook);
+
+
         Integer bookId = wordBook.getId();
         while ((word=bufferedReader.readLine())!=null){
             word = word.trim();
@@ -84,12 +86,16 @@ public class WordBookController {
                 continue;
             }
             try {
+                //调用爬虫来获取单词数据
                  addedWordDataDTO = crawlWordData(word, page);
                  if (addedWordDataDTO == null) {
                      nonExistWordList.add(word);
                      continue;
                  }
+                 //添加单词数据到数据库中
                  Integer wordId = addWordData(addedWordDataDTO);;
+
+                 //添加单词到单词书中
                  bookWordService.save(new BookWord().setBookId(bookId).setWordId(wordId));
             } catch (InterruptedException e) {
                 System.out.println("出问题的单词:" + word);
@@ -135,8 +141,6 @@ public class WordBookController {
         }
 
 
-
-
         if (!dataDTO.getExampleSentences().isEmpty()) {
             for (WordExampleSentence wordExampleSentence : dataDTO.getExampleSentences()) {
                 if (wordExampleSentence != null) {
@@ -163,19 +167,25 @@ public class WordBookController {
     @Transactional
     @PostMapping("/wordBook/rawBook/{userId}/{word}")
     public Map<String, Object> addWordToRawBook (@PathVariable String word, @PathVariable Integer userId) throws IOException {
+
+        //用户不存在则返回错误信息
         User user = userService.getById(userId);
         if (user == null) {
             return Map.of("error_message", "用户不存在");
         }
         WordBook rawWordBook = wordBookService.getOne(new QueryWrapper<WordBook>().eq("user_id", userId).eq("book_title", "生词本"));
+
+        //用户没有创建生词本则先新建
         if (rawWordBook == null) {
             rawWordBook = new WordBook();
             rawWordBook.setUserId(userId).setBookTitle("生词本").setBookDescription("这是生词本").setBookType("用户");
             wordBookService.save(rawWordBook);
         }
 
+
         WordData wordData = wordDataService.getOne(new QueryWrapper<WordData>().eq("word", word));
 
+        //数据库中有生词对应的数据，则只用将生词添加到生词本中即可
         if (wordData != null) {
             BookWord bookWord = bookWordService.getOne(new QueryWrapper<BookWord>().eq("word_id", wordData.getId()).eq("book_id", rawWordBook.getId()));
             if (bookWord != null) {
@@ -186,10 +196,8 @@ public class WordBookController {
             }
         }
 
-
-        //自动下载，第一次下载后不会再下载
+        //数据库中没有生词对应的数据，则需要调取爬虫来获取数据保存到数据库中
         ArrayList<String> arrayList = new ArrayList<>();
-        //生成pdf必须在无厘头模式下才能生效
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome").build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
@@ -249,6 +257,12 @@ public class WordBookController {
         return Map.of("error_message", "成功");
     }
 
+    @GetMapping("/wordBook/{bookId}")
+    public Map<String, Object> getBookWordList(@PathVariable Integer bookId) {
+        List<String> bookWordList = wordBookService.getBookWordList(bookId);
+        return Map.of("error_message", "成功", "data", Map.of("bookWordList", bookWordList));
+    }
+
 
 
 
@@ -297,5 +311,6 @@ public class WordBookController {
         if ("单词不存在".equals(res.get("error_message"))) return null;
         return JSON.parseObject(res.get("data").toString(), AddedWordDataDTO.class);
     }
+
 
 }

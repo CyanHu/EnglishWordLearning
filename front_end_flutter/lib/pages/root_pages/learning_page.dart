@@ -16,19 +16,23 @@ class LearningPage extends StatefulWidget {
 }
 
 class _LearningPageState extends State<LearningPage> {
-
   void toLearningSubPage(learningType) async {
-
-    if (learningType == "learning" && Global.getNonLearningList()!.length == 0) {
-
-      List<LearningItem> nonLearningWordIdList = await EWL().getNonLearningItemList();
+    if (await EWL().getSelectedWordBook() == null) {
+      EasyLoading.showInfo("未选择单词书");
+      return;
+    }
+    if (learningType == "learning" &&
+        Global.getNonLearningList()!.length == 0) {
+      List<LearningItem> nonLearningWordIdList =
+          await EWL().getNonLearningItemList();
       Global.saveNonLearningList(nonLearningWordIdList);
       Global.saveNonLearningIndex(0);
       if (nonLearningWordIdList.isEmpty) {
         EasyLoading.showInfo("已学习完所有单词");
         return;
       }
-    } else if (learningType == "review" && Global.getReviewList()!.length == 0) {
+    } else if (learningType == "review" &&
+        Global.getReviewList()!.length == 0) {
       List<ReviewItem> reviewWordIdList = await EWL().getReviewItemList();
       Global.saveReviewList(reviewWordIdList);
       Global.saveReviewIndex(0);
@@ -38,13 +42,14 @@ class _LearningPageState extends State<LearningPage> {
       }
     }
 
-    Navigator.push(context, MaterialPageRoute(builder: (context) => LearningSubPage(learningType: learningType)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => LearningSubPage(learningType: learningType)));
   }
 
   @override
   void initState() {
-    print(Global.getNonLearningList());
-    print(Global.getReviewList());
     super.initState();
   }
 
@@ -60,7 +65,7 @@ class _LearningPageState extends State<LearningPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
-              onPressed: () =>toLearningSubPage("learning"),
+              onPressed: () => toLearningSubPage("learning"),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -68,10 +73,13 @@ class _LearningPageState extends State<LearningPage> {
                   children: [
                     Text(
                       "Learning",
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
                     ),
-                    SizedBox(height: 5,),
-                    FutureBuilder<LearningBrief>(
+                    SizedBox(
+                      height: 5,
+                    ),
+                    FutureBuilder<LearningBrief?>(
                       future: EWL().getLearningBrief(),
                       builder: (BuildContext context, AsyncSnapshot snapshot) {
                         // 请求已结束
@@ -81,7 +89,9 @@ class _LearningPageState extends State<LearningPage> {
                             return Text("Error: ${snapshot.error}");
                           } else {
                             // 请求成功，显示数据
-                            return Text(snapshot.data.nonLearningWordCount.toString());
+                            if (snapshot.data == null) return SizedBox();
+                            return Text(
+                                snapshot.data.nonLearningWordCount.toString());
                           }
                         } else {
                           // 请求未结束，显示loading
@@ -104,20 +114,26 @@ class _LearningPageState extends State<LearningPage> {
                   children: [
                     Text(
                       "Review",
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
                     ),
-                    SizedBox(height: 5,),
-                    FutureBuilder<LearningBrief>(
+                    SizedBox(
+                      height: 5,
+                    ),
+                    FutureBuilder<LearningBrief?>(
                       future: EWL().getLearningBrief(),
                       builder: (BuildContext context, AsyncSnapshot snapshot) {
                         // 请求已结束
                         if (snapshot.connectionState == ConnectionState.done) {
                           if (snapshot.hasError) {
                             // 请求失败，显示错误
+                            return Text("");
                             return Text("Error: ${snapshot.error}");
                           } else {
                             // 请求成功，显示数据
-                            return Text(snapshot.data.needReviewWordCount.toString());
+                            if (snapshot.data == null) return SizedBox();
+                            return Text(
+                                snapshot.data.needReviewWordCount.toString());
                           }
                         } else {
                           // 请求未结束，显示loading

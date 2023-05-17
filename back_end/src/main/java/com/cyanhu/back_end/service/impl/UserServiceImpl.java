@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.cyanhu.back_end.entity.User;
 import com.cyanhu.back_end.entity.vo.UserVO;
 import com.cyanhu.back_end.mapper.UserMapper;
+import com.cyanhu.back_end.mapper.UserRoleMapper;
 import com.cyanhu.back_end.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cyanhu.back_end.utils.JwtUtil;
@@ -13,10 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +41,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private UserRoleMapper userRoleMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -50,6 +56,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         map.put("error_message", "成功");
         map.put("id", user.getId().toString());
         map.put("username", user.getAvatar());
+        map.put("roleList", loginUser.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
+
         return map;
 
     }
@@ -71,17 +79,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         String jwt = JwtUtil.createJWT(user.getId().toString());
 
 
+
         map.put("error_message", "成功");
         data.put("token", jwt);
-        UserVO userVO = new UserVO().setUserId(user.getId()).setUsername(username).setAvatar(user.getAvatar());
+        UserVO userVO = new UserVO().setUserId(user.getId()).setUsername(username).setAvatar(user.getAvatar()).setRoleList(loginUser.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
         data.put("user", userVO);
         map.put("data", data);
         return map;
     }
 
     @Override
-    public Map<String, Object> register(String username, String password) {
+    public Map<String, Object> register(String username, String password, String confirmedPassword) {
         Map<String, Object> map = new HashMap<>();
+
         if (username == null) {
             map.put("error_message", "用户名不能为空");
             return map;
@@ -99,6 +109,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         if (password.length() == 0) {
             map.put("error_message", "密码不能为空");
+            return map;
+        }
+
+        if (!password.equals(confirmedPassword)) {
+            map.put("error_message", "两者密码不一致");
             return map;
         }
 

@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:front_end_flutter/components/word_book_blank_item.dart';
 import 'package:front_end_flutter/models/index.dart';
+import 'package:front_end_flutter/pages/sub_pages/book_word_list_sub_page.dart';
+import 'package:front_end_flutter/pages/sub_pages/my_word_book_management_sub_page.dart';
 import 'package:front_end_flutter/pages/sub_pages/notice_sub_page.dart';
 import 'package:front_end_flutter/pages/sub_pages/select_word_book_sub_page.dart';
-import 'package:front_end_flutter/pages/sub_pages/user_word_book_management_sub_page.dart';
 
 import '../../common/Global.dart';
 import '../../common/http/ewl.dart';
@@ -21,6 +23,7 @@ class _WordBookPageState extends State<WordBookPage> {
   void initState() {
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,16 +51,17 @@ class _WordBookPageState extends State<WordBookPage> {
                           builder: (BuildContext context) =>
                               SelectWordBookSubPage(),
                         )).then((value) {
-                          if (value != null) {
-                            if (value == "更新成功") EasyLoading.showSuccess(value);
-                            else EasyLoading.showError(value);
-                            setState(() {});
-                          }
-
+                      if (value != null) {
+                        if (value == "更新成功")
+                          EasyLoading.showSuccess(value);
+                        else
+                          EasyLoading.showError(value);
+                        setState(() {});
+                      }
                     });
                   },
                   child: Text(
-                    "更换",
+                    "选择",
                     style: TextStyle(color: Colors.cyan),
                   ),
                 )
@@ -67,7 +71,7 @@ class _WordBookPageState extends State<WordBookPage> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: FutureBuilder<WordBook>(
+              child: FutureBuilder<WordBook?>(
                 future: EWL().getSelectedWordBook(),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   // 请求已结束
@@ -77,9 +81,15 @@ class _WordBookPageState extends State<WordBookPage> {
                       return Text("Error: ${snapshot.error}");
                     } else {
                       // 请求成功，显示数据
-                      return _wordBookItem(
-                          itemTitle: snapshot.data.bookTitle,
-                          itemDescription: snapshot.data.bookDescription);
+                      if (snapshot.data == null) {
+                        return WordBookBlankItem(text: "未选择词库");
+                      } else {
+                        return _wordBookItem(
+                            itemTitle: snapshot.data.bookTitle,
+                            itemDescription: snapshot.data.bookDescription,
+                            itemAction: _toBookWordListSubPage,
+                            bookId: snapshot.data.id.toInt());
+                      }
                     }
                   } else {
                     // 请求未结束，显示loading
@@ -106,7 +116,7 @@ class _WordBookPageState extends State<WordBookPage> {
                         context,
                         MaterialPageRoute(
                           builder: (BuildContext context) =>
-                              UserWordBookManagementSubPage(),
+                              MyWordBookManagementSubPage(),
                         ));
                   },
                   child: Text(
@@ -118,9 +128,9 @@ class _WordBookPageState extends State<WordBookPage> {
             ),
           ),
           Card(
+            semanticContainer: false,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-
               child: FutureBuilder<List<WordBook>>(
                 future: EWL().getUserWordBookList(),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -131,6 +141,7 @@ class _WordBookPageState extends State<WordBookPage> {
                       return Text("Error: ${snapshot.error}");
                     } else {
                       // 请求成功，显示数据
+                      if (snapshot.data.length == 0) return WordBookBlankItem(text: "未创建词库");
                       return Column(
                         children: _wordBookItemList(snapshot.data),
                       );
@@ -155,8 +166,12 @@ class _WordBookPageState extends State<WordBookPage> {
   }
 
   Widget _wordBookItem(
-      {required String itemTitle, required String itemDescription}) {
+      {required String itemTitle,
+      required String itemDescription,
+      required Function itemAction,
+      required int bookId}) {
     return InkWell(
+      onTap: () => itemAction(bookId),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
@@ -185,10 +200,23 @@ class _WordBookPageState extends State<WordBookPage> {
     );
   }
 
+
   List<Widget> _wordBookItemList(List<WordBook> list) {
     return list
         .map<Widget>((e) => _wordBookItem(
-            itemTitle: e.bookTitle, itemDescription: e.bookDescription))
+            itemTitle: e.bookTitle,
+            itemDescription: e.bookDescription,
+            itemAction: _toBookWordListSubPage,
+            bookId: e.id.toInt()))
         .toList();
+  }
+
+  void _toBookWordListSubPage(int bookId) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) =>
+              BookWordListSubPage(bookId: bookId),
+        ));
   }
 }

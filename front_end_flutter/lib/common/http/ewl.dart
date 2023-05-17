@@ -5,8 +5,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:front_end_flutter/main.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/index.dart';
+import '../../states/userModel.dart';
 import '../Global.dart';
 
 class EWL {
@@ -25,6 +27,18 @@ class EWL {
   static void init() {
     // 添加缓存插件
     dio.interceptors.add(Global.netCache);
+    
+    dio.interceptors.add(InterceptorsWrapper(onError: (DioError e, handler) {
+      if (e.response != null) {
+        if (e.response!.statusCode == 401) {
+          EasyLoading.showError("账户已过期， 请重新登录");
+          Global.profile.user = null;
+          Global.profile.token = null;
+          dio.options.headers[HttpHeaders.authorizationHeader] = null;
+        }
+      }
+    }));
+    
     // 设置用户token（可能为null，代表未登录）
     dio.options.headers[HttpHeaders.authorizationHeader] = Global.profile.token != null ? 'Bearer ${Global.profile.token}' : null;
   }
@@ -38,7 +52,6 @@ class EWL {
       }),
     );
     if (r.data['error_message'] != "成功") {
-      EasyLoading.showError('登录失败');
       return null;
     } else {
       Global.profile.token = r.data['data']['token'];
@@ -47,6 +60,26 @@ class EWL {
       return User.fromJson(r.data['data']['user']);
     }
   }
+  Future<String> register(String username, String password, String confirmedPassword) async {
+    var r = await dio.post(
+      "/user/account/register",
+      data: {'username': username, 'password' : password, 'confirmedPassword': confirmedPassword},
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+
+
+
+  void logout() {
+    Global.profile.user = null;
+    Global.profile.token = null;
+    dio.options.headers[HttpHeaders.authorizationHeader] = null;
+  }
+
 
   Future<WordData> getWordData(num wordId) async {
     var r = await dio.get(
@@ -106,13 +139,14 @@ class EWL {
     return r.data['error_message'];
   }
 
-  Future<WordBook> getSelectedWordBook() async {
+  Future<WordBook?> getSelectedWordBook() async {
     var r = await dio.get(
       "/wordBook/selected/${Global.profile.user!.userId}",
       options: _options.copyWith(extra: {
         "noCache": true, //本接口禁用缓存
       }),
     );
+    if (r.data['error_message'] == "该用户未选择单词书") return null;
     return WordBook.fromJson(r.data['data']['selectedWordBook']);
   }
 
@@ -147,13 +181,14 @@ class EWL {
     return "更新失败";
   }
 
-  Future<LearningBrief> getLearningBrief() async {
+  Future<LearningBrief?> getLearningBrief() async {
     var r = await dio.get(
       "/learning/brief/${Global.profile.user!.userId}",
       options: _options.copyWith(extra: {
         "noCache": true, //本接口禁用缓存
       }),
     );
+    if (r.data['error_message'] == "未选择单词书") return null;
     return LearningBrief.fromJson(r.data['data']);
   }
 
@@ -224,6 +259,30 @@ class EWL {
     return r.data["error_message"];
 
   }
+
+  Future<String> singleSignIn() async {
+    var r = await dio.post(
+      "/signIn/single/${Global.profile.user!.userId}",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<List<String>> getBookWordList(int bookId) async {
+    var r = await dio.get(
+      "/wordBook/$bookId",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['data']['bookWordList'].map<String>((e)=> e as String).toList();
+  }
+
+
+
+
 
 
 

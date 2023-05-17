@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:front_end_flutter/components/profile_account_card.dart';
 import 'package:front_end_flutter/components/profile_sign_in_card.dart';
 import 'package:front_end_flutter/models/index.dart';
+import 'package:front_end_flutter/pages/admin/admin_root_page.dart';
 import 'package:front_end_flutter/pages/sub_pages/learning_data_sub_page.dart';
 import 'package:front_end_flutter/pages/sub_pages/notice_sub_page.dart';
+import 'package:front_end_flutter/pages/sub_pages/user_detail_sub_page.dart';
+import 'package:provider/provider.dart';
 
 import '../../common/Global.dart';
 import '../../common/http/ewl.dart';
+import '../../states/userModel.dart';
 
 class Profile extends StatefulWidget {
   const Profile({Key? key}) : super(key: key);
@@ -27,7 +31,16 @@ class _ProfileState extends State<Profile> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(children: [
-          ProfileAccountCard(),
+          GestureDetector(child: ProfileAccountCard(), onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => UserDetailSubPage(),
+                )).then((value) {
+              Provider.of<UserModel>(context, listen: false).notifyListeners();
+
+            });
+          },),
           FutureBuilder<SingleSignInRecord>(
             future: EWL().getSingleSignInRecord(Global.profile.user!.userId),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -47,7 +60,8 @@ class _ProfileState extends State<Profile> {
             },
           ),
           _profileItem(LearningDataSubPage(), "learningData", "学习数据"),
-          _profileItem(NoticeSubPage(), 'notice', "通知")
+          _profileItem(NoticeSubPage(), 'notice', "通知"),
+          _profileItem(AdminRootPage(), 'profile', "管理端")
         ],),
       ),
     );

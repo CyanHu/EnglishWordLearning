@@ -131,6 +131,7 @@ class _LearningSubPageState extends State<LearningSubPage> {
     print("完成单词:$finishList");
 
     EWL().addLearningData(learningType: learningType, startTime: startTime, endTime: endTime, wordIdList: finishList);
+    EWL().singleSignIn().then((value) => print(value));
 
 
     super.dispose();

@@ -128,7 +128,7 @@ class RecentWeekTimeBarChart extends StatelessWidget {
                   borderData: FlBorderData(show: false),
                   gridData: FlGridData(show: false),
                   barGroups: getBarCharGroupDataList(),
-                  maxY: 11 + (betweenSpace * 3),
+                  maxY: 120 + (betweenSpace * 3),
                 ),
               ),
             ),

@@ -16,5 +16,5 @@ import java.util.Map;
 public interface IUserService extends IService<User> {
     Map<String, Object> getInfo();
     Map<String, Object> getToken(String username, String password);
-    Map<String, Object> register(String username, String password);
+    Map<String, Object> register(String username, String password, String confirmedPassword);
 }
