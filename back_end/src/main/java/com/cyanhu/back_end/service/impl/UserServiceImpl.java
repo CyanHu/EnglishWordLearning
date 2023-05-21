@@ -3,6 +3,7 @@ package com.cyanhu.back_end.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import com.cyanhu.back_end.entity.User;
+import com.cyanhu.back_end.entity.UserRole;
 import com.cyanhu.back_end.entity.vo.UserVO;
 import com.cyanhu.back_end.mapper.UserMapper;
 import com.cyanhu.back_end.mapper.UserRoleMapper;
@@ -140,7 +141,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         String avatar = "https://cc-pic-1306321037.cos.ap-shanghai.myqcloud.com/avatar/202304161828131.png";
         User user = new User().setUsername(username).setPassword(encodedPassword).setAvatar(avatar);
         userMapper.insert(user);
-
+        userRoleMapper.insert(new UserRole().setUserId(user.getId()).setRoleName("ROLE_USER"));
         map.put("error_message", "成功");
         return map;
     }

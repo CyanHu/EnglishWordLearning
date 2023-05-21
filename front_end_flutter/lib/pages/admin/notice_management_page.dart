@@ -1,17 +1,24 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:front_end_flutter/models/index.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:front_end_flutter/components/word_book_blank_item.dart';
 
-import '../../components/search_text_field.dart';
+import '../../common/http/ewl.dart';
+import '../../models/index.dart';
 
 class NoticeManagementPage extends StatefulWidget {
   const NoticeManagementPage({Key? key}) : super(key: key);
 
   @override
-  State<NoticeManagementPage> createState() => _NoticeManagementPageState();
+  State<NoticeManagementPage> createState() =>
+      _NoticeManagementPageState();
 }
 
-class _NoticeManagementPageState extends State<NoticeManagementPage> {
+class _NoticeManagementPageState
+    extends State<NoticeManagementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,19 +42,34 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
                 },
                 child: Text("添加")),
             SingleChildScrollView(
-              child: Column(
-                children: [
-                  Table(
-                      border: TableBorder.all(),
-                      children: _buildTableRows(["test1", "test2"])),
-                ],
+              child: FutureBuilder<List<Notice>>(
+                future: EWL().getNoticeList(),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  // 请求已结束
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) {
+                      // 请求失败，显示错误
+                      return Text("Error: ${snapshot.error}");
+                    } else {
+                      // 请求成功，显示数据
+                      if (snapshot.data.length == 0)
+                        return WordBookBlankItem(text: "未创建通知");
+                      return Table(
+                          border: TableBorder.all(),
+                          children: _buildTableRows(snapshot.data));
+                    }
+                  } else {
+                    // 请求未结束，显示loading
+                    return CircularProgressIndicator();
+                  }
+                },
               ),
             ),
           ],
         ));
   }
 
-  List<TableRow> _buildTableRows(List<String> words) {
+  List<TableRow> _buildTableRows(List<Notice> noticeList) {
     List<TableRow> res = [
       TableRow(children: [
         Text('通知',
@@ -58,10 +80,10 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
             style: TextStyle(fontWeight: FontWeight.bold)),
       ]),
     ];
-    for (String word in words) {
+    for (Notice notice in noticeList) {
       res.add(TableRow(children: [
         Text(
-          word,
+          notice.title,
           textAlign: TextAlign.center,
         ),
         Center(
@@ -70,7 +92,13 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
             children: [
               IconButton(
                 icon: Icon(Icons.update),
-                onPressed: () {},
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return _myDialog(type: "修改", notice: notice);
+                      });
+                },
               ),
               IconButton(
                 icon: Icon(
@@ -81,7 +109,7 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
                   showDialog(
                       context: context,
                       builder: (context) {
-                        return _deleteDialog();
+                        return _deleteDialog(notice.id.toInt());
                       });
                 },
               ),
@@ -94,10 +122,10 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
     return res;
   }
 
-  Widget _deleteDialog() {
+  Widget _deleteDialog(int bookId) {
     return AlertDialog(
       title: Text("提示"),
-      content: Text("您确定要删除当前文件吗?"),
+      content: Text("您确定要删除当前通知吗?"),
       actions: <Widget>[
         TextButton(
           child: Text("取消"),
@@ -106,7 +134,10 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
         TextButton(
           child: Text("删除"),
           onPressed: () {
-            // ... 执行删除操作
+            EWL().deleteWordBook(bookId).then((value) {
+              EasyLoading.showInfo(value);
+              setState(() {});
+            });
             Navigator.of(context).pop(true); //关闭对话框
           },
         ),
@@ -115,49 +146,33 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
   }
 
   Widget _myDialog({required String type, Notice? notice}) {
-    bool readOnly = type == "添加" ? false : true;
-    print(readOnly);
-
+    final _noticeTitleController =
+    TextEditingController(text: notice?.title);
+    final _noticeContentController =
+    TextEditingController(text: notice?.content);
+    final _noticeDescriptionController =
+    TextEditingController(text: notice?.description);
     return AlertDialog(
-      title: Text("添加"),
-      content: Form(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              decoration: InputDecoration(
-                  labelText: notice?.title,
-                  icon: Icon(Icons.book),
-                  hintText: "通知标题"),
-              readOnly: readOnly,
-              initialValue: null,
-            ),
-            TextFormField(
-              decoration: InputDecoration(
-                  labelText: notice?.title,
-                  icon: Icon(Icons.book),
-                  hintText: "通知内容"),
-              readOnly: readOnly,
-              initialValue: null,
-            ),
-            TextFormField(
-              decoration: InputDecoration(
-                  labelText: notice?.title,
-                  icon: Icon(Icons.book),
-                  hintText: "通知类型"),
-              readOnly: readOnly,
-              initialValue: null,
-            ),
-            TextFormField(
-              decoration: InputDecoration(
-                  labelText: notice?.title,
-                  icon: Icon(Icons.book),
-                  hintText: "通知描述"),
-              readOnly: readOnly,
-              initialValue: null,
-            ),
-          ],
-        ),
+      title: Text(type),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _noticeTitleController,
+            decoration: InputDecoration(
+                labelText: "通知标题", icon: Icon(Icons.book), hintText: "通知标题"),
+          ),
+          TextField(
+            controller: _noticeContentController,
+            decoration: InputDecoration(
+                labelText: "通知内容", icon: Icon(Icons.book), hintText: "通知内容"),
+          ),
+          TextField(
+            controller: _noticeDescriptionController,
+            decoration: InputDecoration(
+                labelText: "通知描述", icon: Icon(Icons.book), hintText: "通知描述"),
+          ),
+        ],
       ),
       actions: <Widget>[
         TextButton(
@@ -165,10 +180,45 @@ class _NoticeManagementPageState extends State<NoticeManagementPage> {
           onPressed: () => Navigator.of(context).pop(), //关闭对话框
         ),
         TextButton(
-          child: Text("添加"),
+          child: Text(type),
           onPressed: () {
-            // ... 执行删除操作
-            Navigator.of(context).pop(true); //关闭对话框
+            String title = _noticeTitleController.value.text;
+            String content = _noticeContentController.value.text;
+            String description = _noticeDescriptionController.value.text;
+            if (title.isEmpty) {
+              EasyLoading.showInfo("未输入通知标题");
+              return;
+            }
+            if (content.isEmpty) {
+              EasyLoading.showInfo("未输入通知内容");
+              return;
+            }
+            if (description.isEmpty) {
+              EasyLoading.showInfo("未输入通知描述");
+              return;
+            }
+
+            if (type == "添加") {
+              EWL()
+                  .addNotice(title: title, content: content, description: description)
+                  .then((value) {
+                EasyLoading.showInfo(value);
+                setState(() {});
+                Navigator.of(context).pop(true); //关闭对话框
+              });
+            } else if (type == "修改") {
+              if (notice == null) EasyLoading.showInfo("出错了");
+              EWL()
+                  .updateNotice(notice!
+                ..title = title
+                ..content = content
+                ..description = description)
+                  .then((value) {
+                EasyLoading.showInfo(value);
+                setState(() {});
+                Navigator.of(context).pop(true); //关闭对话框
+              });
+            }
           },
         ),
       ],

@@ -94,9 +94,9 @@ public class LearningController {
     @GetMapping("/learning/brief/{userId}")
     public Map<String, Object> getLearningBrief(@PathVariable Integer userId) {
         UserSelectedBook userSelectedBook = userSelectedBookService.getOne(new QueryWrapper<UserSelectedBook>().eq("user_id", userId));
-        if (userSelectedBook == null) return Map.of("error_message", "未选择单词书");
-        int nonLearningWordCount = learningWordService.getNonLearningWordCount(userId, userSelectedBook.getBookId());
-        int needReviewWordCount = (int) learningWordService.count(new QueryWrapper<LearningWord>().le("next_review_time", DateTime.now()));
+        int nonLearningWordCount = -1;
+        if (userSelectedBook != null) nonLearningWordCount = learningWordService.getNonLearningWordCount(userId, userSelectedBook.getBookId());
+        int needReviewWordCount = (int) learningWordService.count(new QueryWrapper<LearningWord>().le("next_review_time", DateTime.now()).eq("user_id", userId));
         return Map.of("error_message", "成功", "data", Map.of("nonLearningWordCount", nonLearningWordCount, "needReviewWordCount", needReviewWordCount));
     }
 

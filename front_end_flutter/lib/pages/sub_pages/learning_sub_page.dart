@@ -71,6 +71,7 @@ class _LearningSubPageState extends State<LearningSubPage> {
     } else {
       setState(() {
         _isSelected = false;
+        _nextStudyIndex();
       });
     }
 
@@ -93,6 +94,10 @@ class _LearningSubPageState extends State<LearningSubPage> {
       finishList.add(wordList[_studyIndex].wordId);
     }
 
+
+  }
+
+  void _nextStudyIndex() {
     int nextStudyIndex;
     for (int i = 1; i <= wordList.length; i ++) {
       nextStudyIndex = (_studyIndex + i) % wordList.length;
@@ -101,7 +106,6 @@ class _LearningSubPageState extends State<LearningSubPage> {
         break;
       }
     }
-
   }
 
   @override
@@ -119,6 +123,11 @@ class _LearningSubPageState extends State<LearningSubPage> {
   @override
   void dispose() {
     print("dispose 被调用了");
+
+    if (_isSelected) {
+      _nextStudyIndex();
+    }
+
     if (learningType == "learning") {
       Global.saveNonLearningList(wordList.map<LearningItem>((e)=> e as LearningItem).toList());
       Global.saveNonLearningIndex(_studyIndex);

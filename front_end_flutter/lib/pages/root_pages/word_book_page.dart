@@ -117,7 +117,7 @@ class _WordBookPageState extends State<WordBookPage> {
                         MaterialPageRoute(
                           builder: (BuildContext context) =>
                               MyWordBookManagementSubPage(),
-                        ));
+                        )).then((value) {setState(() {});});
                   },
                   child: Text(
                     " 管理",

@@ -18,7 +18,7 @@ class LearningPage extends StatefulWidget {
 class _LearningPageState extends State<LearningPage> {
   void toLearningSubPage(learningType) async {
     if (await EWL().getSelectedWordBook() == null) {
-      EasyLoading.showInfo("未选择单词书");
+      EasyLoading.showError("未选择单词书");
       return;
     }
     if (learningType == "learning" &&
@@ -89,9 +89,13 @@ class _LearningPageState extends State<LearningPage> {
                             return Text("Error: ${snapshot.error}");
                           } else {
                             // 请求成功，显示数据
-                            if (snapshot.data == null) return SizedBox();
+                            int count = snapshot.data.nonLearningWordCount;
+                            if (count == -1) {
+                              EasyLoading.showError("未选择单词书");
+                              return SizedBox();
+                            }
                             return Text(
-                                snapshot.data.nonLearningWordCount.toString());
+                                count.toString());
                           }
                         } else {
                           // 请求未结束，显示loading
@@ -131,7 +135,10 @@ class _LearningPageState extends State<LearningPage> {
                             return Text("Error: ${snapshot.error}");
                           } else {
                             // 请求成功，显示数据
-                            if (snapshot.data == null) return SizedBox();
+                            int count = snapshot.data.nonLearningWordCount;
+                            if (count == -1) {
+                              return SizedBox();
+                            }
                             return Text(
                                 snapshot.data.needReviewWordCount.toString());
                           }

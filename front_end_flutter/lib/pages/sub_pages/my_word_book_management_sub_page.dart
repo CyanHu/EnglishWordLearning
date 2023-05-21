@@ -3,17 +3,22 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:front_end_flutter/components/word_book_blank_item.dart';
 
+import '../../common/http/ewl.dart';
 import '../../models/index.dart';
 
 class MyWordBookManagementSubPage extends StatefulWidget {
   const MyWordBookManagementSubPage({Key? key}) : super(key: key);
 
   @override
-  State<MyWordBookManagementSubPage> createState() => _MyWordBookManagementSubPageState();
+  State<MyWordBookManagementSubPage> createState() =>
+      _MyWordBookManagementSubPageState();
 }
 
-class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPage> {
+class _MyWordBookManagementSubPageState
+    extends State<MyWordBookManagementSubPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,19 +42,34 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
                 },
                 child: Text("添加")),
             SingleChildScrollView(
-              child: Column(
-                children: [
-                  Table(
-                      border: TableBorder.all(),
-                      children: _buildTableRows(["test1", "test2"])),
-                ],
+              child: FutureBuilder<List<WordBook>>(
+                future: EWL().getUserWordBookList(),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  // 请求已结束
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) {
+                      // 请求失败，显示错误
+                      return Text("Error: ${snapshot.error}");
+                    } else {
+                      // 请求成功，显示数据
+                      if (snapshot.data.length == 0)
+                        return WordBookBlankItem(text: "未创建单词书");
+                      return Table(
+                          border: TableBorder.all(),
+                          children: _buildTableRows(snapshot.data));
+                    }
+                  } else {
+                    // 请求未结束，显示loading
+                    return CircularProgressIndicator();
+                  }
+                },
               ),
             ),
           ],
         ));
   }
 
-  List<TableRow> _buildTableRows(List<String> words) {
+  List<TableRow> _buildTableRows(List<WordBook> wordBookList) {
     List<TableRow> res = [
       TableRow(children: [
         Text('我的单词书',
@@ -60,10 +80,10 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
             style: TextStyle(fontWeight: FontWeight.bold)),
       ]),
     ];
-    for (String word in words) {
+    for (WordBook wordBook in wordBookList) {
       res.add(TableRow(children: [
         Text(
-          word,
+          wordBook.bookTitle,
           textAlign: TextAlign.center,
         ),
         Center(
@@ -72,7 +92,13 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
             children: [
               IconButton(
                 icon: Icon(Icons.update),
-                onPressed: () {},
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return _myDialog(type: "修改", wordBook: wordBook);
+                      });
+                },
               ),
               IconButton(
                 icon: Icon(
@@ -83,7 +109,7 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
                   showDialog(
                       context: context,
                       builder: (context) {
-                        return _deleteDialog();
+                        return _deleteDialog(wordBook.id.toInt());
                       });
                 },
               ),
@@ -96,10 +122,10 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
     return res;
   }
 
-  Widget _deleteDialog() {
+  Widget _deleteDialog(int bookId) {
     return AlertDialog(
       title: Text("提示"),
-      content: Text("您确定要删除当前文件吗?"),
+      content: Text("您确定要删除当前单词书吗?"),
       actions: <Widget>[
         TextButton(
           child: Text("取消"),
@@ -108,7 +134,10 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
         TextButton(
           child: Text("删除"),
           onPressed: () {
-            // ... 执行删除操作
+            EWL().deleteWordBook(bookId).then((value) {
+              EasyLoading.showInfo(value);
+              setState(() {});
+            });
             Navigator.of(context).pop(true); //关闭对话框
           },
         ),
@@ -116,38 +145,36 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
     );
   }
 
-  Widget _myDialog({required String type, Notice? notice}) {
-    bool readOnly = type == "添加" ? false : true;
-    print(readOnly);
-
+  Widget _myDialog({required String type, WordBook? wordBook}) {
+    final _bookTitleController =
+        TextEditingController(text: wordBook?.bookTitle);
+    final _bookDescriptionController =
+        TextEditingController(text: wordBook?.bookDescription);
+    File? file;
     return AlertDialog(
-      title: Text("添加"),
-      content: Form(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              decoration: InputDecoration(
-                  labelText: notice?.title,
-                  icon: Icon(Icons.book),
-                  hintText: "单词书名"),
-              readOnly: readOnly,
-              initialValue: null,
-            ),
-            TextFormField(
-              decoration: InputDecoration(
-                  labelText: notice?.title,
-                  icon: Icon(Icons.book),
-                  hintText: "单词书描述"),
-              initialValue: null,
-            ),
-            ElevatedButton.icon(
+      title: Text(type),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _bookTitleController,
+            decoration: InputDecoration(
+                labelText: "单词书名", icon: Icon(Icons.book), hintText: "单词书名"),
+          ),
+          TextField(
+            controller: _bookDescriptionController,
+            decoration: InputDecoration(
+                labelText: "单词书描述", icon: Icon(Icons.book), hintText: "单词书描述"),
+          ),
+          Visibility(
+            visible: type == "添加",
+            child: ElevatedButton.icon(
                 onPressed: () async {
                   FilePickerResult? result =
-                  await FilePicker.platform.pickFiles();
+                      await FilePicker.platform.pickFiles();
 
                   if (result != null) {
-                    File file = File(result.files.single.path!);
+                    file = File(result.files.single.path!);
                     print(result.files.single.path!);
                   } else {
                     // User canceled the picker
@@ -155,8 +182,8 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
                 },
                 icon: Icon(Icons.upload),
                 label: Text("上传文件")),
-          ],
-        ),
+          ),
+        ],
       ),
       actions: <Widget>[
         TextButton(
@@ -164,10 +191,46 @@ class _MyWordBookManagementSubPageState extends State<MyWordBookManagementSubPag
           onPressed: () => Navigator.of(context).pop(), //关闭对话框
         ),
         TextButton(
-          child: Text("添加"),
+          child: Text(type),
           onPressed: () {
-            // ... 执行删除操作
-            Navigator.of(context).pop(true); //关闭对话框
+            String bookTitle = _bookTitleController.value.text;
+            String bookDescription = _bookDescriptionController.value.text;
+            if (bookTitle.isEmpty) {
+              EasyLoading.showInfo("未输入单词书名");
+              return;
+            }
+            if (bookDescription.isEmpty) {
+              EasyLoading.showInfo("未输入单词书描述");
+              return;
+            }
+            if (type == "添加" && file == null) {
+              EasyLoading.showInfo("未上传单词书");
+              return;
+            }
+
+            if (type == "添加") {
+              EWL()
+                  .uploadUserWordBook(
+                      bookTitle: bookTitle,
+                      bookDescription: bookDescription,
+                      file: file!)
+                  .then((value) {
+                EasyLoading.showInfo(value);
+                setState(() {});
+                Navigator.of(context).pop(true); //关闭对话框
+              });
+            } else if (type == "修改") {
+              if (wordBook == null) EasyLoading.showInfo("出错了");
+              EWL()
+                  .updateWordBook(wordBook!
+                    ..bookTitle = bookTitle
+                    ..bookDescription = bookDescription)
+                  .then((value) {
+                EasyLoading.showInfo(value);
+                setState(() {});
+                Navigator.of(context).pop(true); //关闭对话框
+              });
+            }
           },
         ),
       ],

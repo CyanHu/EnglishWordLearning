@@ -77,6 +77,8 @@ class EWL {
   void logout() {
     Global.profile.user = null;
     Global.profile.token = null;
+    Global.saveReviewList([]);
+    Global.saveNonLearningList([]);
     dio.options.headers[HttpHeaders.authorizationHeader] = null;
   }
 
@@ -188,7 +190,6 @@ class EWL {
         "noCache": true, //本接口禁用缓存
       }),
     );
-    if (r.data['error_message'] == "未选择单词书") return null;
     return LearningBrief.fromJson(r.data['data']);
   }
 
@@ -280,6 +281,101 @@ class EWL {
     return r.data['data']['bookWordList'].map<String>((e)=> e as String).toList();
   }
 
+  Future<String> uploadUserWordBook({required String bookTitle, required String bookDescription, required File file}) async {
+    FormData formData = FormData.fromMap({
+      'bookFile': await MultipartFile.fromFile(file.path),
+      'bookTitle': bookTitle,
+      'bookDescription': bookDescription,
+      'bookType': "用户",
+      'userId': Global.profile.user!.userId,
+    });
+    var r = await dio.post(
+      "/wordBook/upload",
+      data: formData,
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    print(r);
+    return r.data['error_message'];
+  }
+
+  Future<String> uploadSystemWordBook({required String bookTitle, required String bookDescription, required File file}) async {
+    FormData formData = FormData.fromMap({
+      'bookFile': await MultipartFile.fromFile(file.path),
+      'bookTitle': bookTitle,
+      'bookDescription': bookDescription,
+      'bookType': "系统",
+    });
+    var r = await dio.post(
+      "/wordBook/upload",
+      data: formData,
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    print(r);
+    return r.data['error_message'];
+  }
+
+  Future<String> deleteWordBook(int bookId) async {
+    var r = await dio.post(
+      "/wordBook/delete/$bookId",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<String> updateWordBook(WordBook wordBook) async {
+    var r = await dio.post(
+      "/wordBook/update",
+      data: wordBook.toJson(),
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<String> addNotice({required String title, required String content, required String description}) async {
+
+    var r = await dio.post(
+      "/notice/add",
+      data: {
+        "title": title,
+        "content": content,
+        "description": description,
+        "noticeType": "系统",
+      },
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<String> deleteNotice(int noticeId) async {
+    var r = await dio.post(
+      "/notice/delete/$noticeId",
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
+
+  Future<String> updateNotice(Notice notice) async {
+    var r = await dio.post(
+      "/notice/update",
+      data: notice.toJson(),
+      options: _options.copyWith(extra: {
+        "noCache": true, //本接口禁用缓存
+      }),
+    );
+    return r.data['error_message'];
+  }
 
 
 

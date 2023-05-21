@@ -13,7 +13,7 @@ class AdminRootPage extends StatelessWidget {
   static List<ButtonItem> itemList = [
     ButtonItem(buttonContent: "系统单词书管理", page: const SystemWordBookManagementPage()),
     ButtonItem(buttonContent: "通知管理", page: const NoticeManagementPage()),
-    ButtonItem(buttonContent: "单词释义理解管理", page: const WordExampleMeaningManagementPage()),
+    ButtonItem(buttonContent: "单词释义例句管理", page: const WordExampleMeaningManagementPage()),
   ];
 
   void _toPage(Widget page, BuildContext context) {

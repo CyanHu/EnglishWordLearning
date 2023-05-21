@@ -83,6 +83,8 @@ public class WordBookController {
             word = word.trim();
             WordData wordData = wordDataService.getOne(new QueryWrapper<WordData>().eq("word", word));
             if (wordData != null) {
+                //添加单词到单词书中
+                bookWordService.save(new BookWord().setBookId(bookId).setWordId(wordData.getId()));
                 continue;
             }
             try {
@@ -107,6 +109,26 @@ public class WordBookController {
         res.put("data", Map.of("non-exist_list", nonExistWordList));
         return res;
     }
+
+    @Transactional
+    @PostMapping(value = "/wordBook/delete/{bookId}")
+    public Map<String, Object>  deleteWordBook(@PathVariable Integer bookId) {
+
+        bookWordService.remove(new QueryWrapper<BookWord>().eq("book_id", bookId));
+        wordBookService.removeById(bookId);
+
+        return Map.of("error_message", "删除成功");
+
+    }
+
+    @Transactional
+    @PostMapping(value = "/wordBook/update")
+    public Map<String, Object>  updateWordBook(@RequestBody WordBook wordBook) {
+        wordBookService.updateById(wordBook);
+        return Map.of("error_message", "更新成功");
+    }
+
+
 
     @Autowired
     IWordDataService wordDataService;
